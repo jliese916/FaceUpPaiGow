@@ -1,6 +1,6 @@
 {
-  "name": "Casa del Jefe — Face Up Pai Gow Salon",
-  "short_name": "Pai Gow Salon",
+  "name": "Casa del Jefe — The Pai Gow Practice Pit",
+  "short_name": "Pai Gow Pit",
   "description": "Practice setting Face Up Pai Gow Poker hands against a visible dealer hand.",
   "start_url": "./",
   "display": "standalone",

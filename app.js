@@ -141,7 +141,7 @@
     }
     if (card.joker) {
       node.classList.add("joker-card");
-      node.innerHTML = `<span class="joker-star">★</span><span class="joker-word">JOKER</span>`;
+      node.innerHTML = `<span class="joker-corner joker-corner-top">★</span><span class="joker-word">JOKER</span><span class="joker-star">★</span><span class="joker-corner joker-corner-bottom">★</span>`;
     } else {
       const suitClass = SUIT_CLASSES[card.suit];
       node.classList.add(suitClass);
@@ -200,7 +200,8 @@
     const low = document.createElement("div");
     low.className = owner === "dealer" ? "dealer-low" : "set-row";
     renderCardRow(low, set.lowCards, "", animated);
-    wrap.append(highLabel, high, lowLabel, low);
+    if (owner === "dealer") wrap.append(highLabel, high, lowLabel, low);
+    else wrap.append(lowLabel, low, highLabel, high);
     return wrap;
   }
 
@@ -430,7 +431,7 @@
     if (mode === "play") controls.next.textContent = round && round.completed ? "Deal Again" : "Deal";
     if (mode === "challenge") {
       controls.next.classList.toggle("hidden", !round || !round.completed || state.challenge.number >= CHALLENGE_HANDS);
-      el.challengeProgress.textContent = `Hand ${state.challenge.number} of ${CHALLENGE_HANDS} · ${state.challenge.correct} correct`;
+      el.challengeProgress.textContent = `Hand ${state.challenge.number} of ${CHALLENGE_HANDS}`;
     }
     renderStats();
   }

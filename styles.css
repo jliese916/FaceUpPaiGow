@@ -104,9 +104,15 @@ button.card { cursor: pointer; }
 .suit-diamonds { color: var(--diamond); }
 .suit-clubs { color: var(--club); }
 .suit-spades { color: var(--spade); }
-.card.joker-card { background: linear-gradient(145deg, #fffdf8, #f5e7bb); color: #694c08; }
-.joker-card .joker-star { font-size: 1.75rem; }
-.joker-card .joker-word { position: absolute; bottom: 6px; font-size: .46rem; font-weight: 950; letter-spacing: .12em; }
+.card.joker-card { border-color: #b8ab8b; background: radial-gradient(circle at 50% 44%, #fff 0 34%, #f8f1df 72%, #e9dcc0 100%); color: #050505; box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px #c9a23a, 0 5px 11px rgba(0,0,0,.24); }
+.joker-card::before, .joker-card::after { content: ""; position: absolute; width: 28px; height: 5px; border-radius: 99px; opacity: .72; transform: rotate(-24deg); }
+.joker-card::before { left: -5px; top: 43%; background: #b91c1c; }
+.joker-card::after { right: -5px; bottom: 39%; background: #1d4ed8; }
+.joker-card .joker-star { position: relative; z-index: 2; color: #050505; font-size: 2.45rem; line-height: 1; text-shadow: 0 1px 0 #fff, 0 3px 7px rgba(0,0,0,.18); }
+.joker-card .joker-word { position: absolute; left: 6px; top: 50%; z-index: 3; color: #7f1d1d; font-family: Georgia, "Times New Roman", serif; font-size: .42rem; font-weight: 950; letter-spacing: .08em; writing-mode: vertical-rl; transform: translateY(-50%) rotate(180deg); }
+.joker-corner { position: absolute; z-index: 3; color: #050505; font-size: .58rem; line-height: 1; }
+.joker-corner-top { right: 6px; top: 6px; }
+.joker-corner-bottom { left: 6px; bottom: 6px; transform: rotate(180deg); }
 .card.card-back { border-color: var(--gold); background: linear-gradient(135deg, #123d2d 0 25%, #1f6348 25% 50%, #123d2d 50% 75%, #1f6348 75%); background-size: 16px 16px; box-shadow: inset 0 0 0 5px #e7c86a, inset 0 0 0 7px #0b3224, 0 5px 11px rgba(0,0,0,.3); }
 .card.card-back::after { content: "♛"; position: absolute; inset: 11px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.72); border-radius: 5px; color: #f8e6a6; font-size: 1.3rem; }
 .card.placeholder { border-style: dashed; border-color: rgba(241,217,146,.45); background: rgba(3,17,13,.76); box-shadow: inset 0 0 0 1px rgba(201,162,58,.08); color: rgba(241,217,146,.7); }

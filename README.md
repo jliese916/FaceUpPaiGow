@@ -1,4 +1,4 @@
-# Casa del Jefe — Face Up Pai Gow Salon
+# Casa del Jefe — The Pai Gow Practice Pit
 
 A standalone, dependency-free Face Up Pai Gow Poker trainer designed to match the other Casa del Jefe casino trainers.
 
