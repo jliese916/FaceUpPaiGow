@@ -71,8 +71,10 @@ function run() {
   assert(solution.canWin, "Player should have a winning set");
   assert.equal(solution.best.result.outcome, "win");
 
-  const aceHighDealer = engine.houseWaySet(cards("AS KH QD 9C 7S 4H 2D"));
-  assert(engine.dealerHasAceHighPaiGow(aceHighDealer));
+  const aceHighDealerCards = cards("AS KH QD 9C 7S 4H 2D");
+  const aceHighDealer = engine.houseWaySet(aceHighDealerCards);
+  assert(engine.dealerHasAceHighPaiGow(aceHighDealerCards), "Raw seven-card dealer hand must trigger the automatic push");
+  assert(engine.dealerHasAceHighPaiGow(aceHighDealer), "Dealer house-way set must also trigger the automatic push");
   const automaticPush = engine.compareSets(solution.best, aceHighDealer);
   assert.equal(automaticPush.outcome, "push");
   assert(automaticPush.aceHighPush);

@@ -197,7 +197,7 @@
     const playerCards = deck.slice(0, 7);
     const dealerCards = deck.slice(7, 14);
     const dealerSet = E.houseWaySet(dealerCards);
-    const automaticPush = E.dealerHasAceHighPaiGow(dealerSet);
+    const automaticPush = E.dealerHasAceHighPaiGow(dealerCards);
     return {
       playerCards,
       dealerCards,
@@ -380,6 +380,11 @@
   function toggleCard(mode, id) {
     const round = roundFor(mode);
     if (!round || round.completed) return;
+    if (E.dealerHasAceHighPaiGow(round.dealerCards)) {
+      settleAutomaticPush(mode, round);
+      renderRound(mode);
+      return;
+    }
     const index = round.selected.indexOf(id);
     if (index >= 0) {
       round.selected.splice(index, 1);
@@ -418,7 +423,13 @@
 
   function submitSet(mode) {
     const round = roundFor(mode);
-    if (!round || round.completed || round.selected.length !== 2) return;
+    if (!round || round.completed) return;
+    if (E.dealerHasAceHighPaiGow(round.dealerCards)) {
+      settleAutomaticPush(mode, round);
+      renderRound(mode);
+      return;
+    }
+    if (round.selected.length !== 2) return;
     const playerSet = selectedPlayerSet(round);
     if (!playerSet || !playerSet.legal) {
       round.message = "That is a foul: the five-card bottom hand must beat the two-card top hand. Choose another two cards.";
@@ -482,7 +493,9 @@
   }
 
   function settleAutomaticPush(mode, round) {
-    if (!round || !round.automaticPush || round.completed) return;
+    if (!round || round.completed) return;
+    round.automaticPush = E.dealerHasAceHighPaiGow(round.dealerCards);
+    if (!round.automaticPush) return;
     round.completed = true;
     round.accurate = true;
     round.result = { outcome: "push", highComparison: 0, lowComparison: 0, aceHighPush: true };
@@ -505,6 +518,7 @@
   function renderRound(mode) {
     const round = roundFor(mode);
     const controls = controlsFor(mode);
+    if (round && !round.completed && E.dealerHasAceHighPaiGow(round.dealerCards)) settleAutomaticPush(mode, round);
     renderStage(controls.stage, round, mode);
     controls.message.textContent = round ? round.message : (mode === "play" ? "Press Deal to begin." : "Select exactly two cards for the top hand.");
     controls.message.className = `table-message${round && round.messageClass ? ` ${round.messageClass}` : ""}`;
@@ -949,5 +963,13 @@
 
   renderRound("play");
   renderLookup();
-  if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(() => {}));
+  if ("serviceWorker" in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+    window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js?v=6", { updateViaCache: "none" }).then(registration => registration.update()).catch(() => {}));
+  }
 })();

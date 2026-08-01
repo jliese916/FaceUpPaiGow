@@ -35,3 +35,10 @@ node test-engine.js
 - Automatic round completion when the dealer has Ace-high Pai Gow; no player setting is required
 - Rules dropdown omits commission language
 - Strategy guide reminds players to search patiently for a combination that wins both hands
+
+
+## v5 cache and Ace-high push fix
+
+- Detects dealer Ace-high Pai Gow directly from the seven dealt dealer cards.
+- Forces newly deployed JavaScript and service-worker updates to activate immediately.
+- Uses network-first loading for page navigations so an older cached build cannot silently remain active.

@@ -351,8 +351,18 @@
     return { ...chosen, houseRule: rule };
   }
 
-  function dealerHasAceHighPaiGow(dealerSet) {
-    return dealerSet.high.category === 0 && dealerSet.high.score[1] === 14 && dealerSet.low.category === 0;
+  function dealerHasAceHighPaiGow(dealerCardsOrSet) {
+    const dealerSet = Array.isArray(dealerCardsOrSet)
+      ? houseWaySet(dealerCardsOrSet)
+      : dealerCardsOrSet;
+    return Boolean(
+      dealerSet &&
+      dealerSet.high &&
+      dealerSet.low &&
+      dealerSet.high.category === 0 &&
+      dealerSet.high.score[1] === 14 &&
+      dealerSet.low.category === 0
+    );
   }
 
   function compareSets(playerSet, dealerSet) {
