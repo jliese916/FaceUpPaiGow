@@ -31,3 +31,7 @@ The evaluator test suite is in `test-engine.js` and can be run with Node.js:
 ```text
 node test-engine.js
 ```
+
+- Automatic round completion when the dealer has Ace-high Pai Gow; no player setting is required
+- Rules dropdown omits commission language
+- Strategy guide reminds players to search patiently for a combination that wins both hands

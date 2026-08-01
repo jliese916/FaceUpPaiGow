@@ -155,6 +155,10 @@ button.card { cursor: pointer; }
 .set-result-banner.push { color: #ffe8a3; }
 .set-result-banner.loss { color: #ffc2c2; }
 .set-result-detail { margin: 0 auto; color: #e9dfc5; font-size: .72rem; line-height: 1.35; }
+.automatic-push-result { max-width: 560px; margin: -1px auto 2px; padding: 7px 12px 9px; border: 1px solid rgba(231,200,106,.34); border-radius: 11px; background: rgba(0,0,0,.16); }
+.automatic-push-lookup { align-items: stretch; }
+.no-setting-card { display: grid; align-content: center; justify-items: center; min-height: 170px; }
+.no-setting-symbol { color: var(--gold-soft); font-family: Georgia, "Times New Roman", serif; font-size: 3rem; line-height: 1; }
 .comparison-pills { display: flex; justify-content: center; gap: 7px; margin-top: 5px; }
 .comparison-pill { padding: 3px 8px; border-radius: 999px; background: rgba(0,0,0,.24); color: #e9dfc5; font-size: .62rem; font-weight: 850; }
 .comparison-pill.beat { color: #bff5ce; }

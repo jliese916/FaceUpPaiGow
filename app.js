@@ -196,19 +196,24 @@
     const deck = E.shuffledDeck();
     const playerCards = deck.slice(0, 7);
     const dealerCards = deck.slice(7, 14);
+    const dealerSet = E.houseWaySet(dealerCards);
+    const automaticPush = E.dealerHasAceHighPaiGow(dealerSet);
     return {
       playerCards,
       dealerCards,
-      dealerSet: E.houseWaySet(dealerCards),
+      dealerSet,
       selected: [],
       completed: false,
+      automaticPush,
       playerSet: null,
       analysis: null,
       result: null,
       accurate: null,
       justDealt: true,
-      message: "Select exactly two cards for your top hand.",
-      messageClass: ""
+      message: automaticPush
+        ? "Dealer Ace-high Pai Gow — every player hand automatically pushes. No setting is needed."
+        : "Select exactly two cards for your top hand.",
+      messageClass: automaticPush ? "correct" : ""
     };
   }
 
@@ -252,7 +257,7 @@
     banner.textContent = result.outcome === "win" ? "✓ Player Wins" : result.outcome === "push" ? "— Push" : "× Dealer Wins";
     const detail = document.createElement("p");
     detail.className = "set-result-detail";
-    if (result.aceHighPush) detail.textContent = "Dealer Ace-high Pai Gow: the base wager automatically pushes.";
+    if (result.aceHighPush) detail.textContent = "Dealer Ace-high Pai Gow: every player hand automatically pushes.";
     else if (round.accurate) detail.textContent = round.analysis.canWin ? "You found a winning set." : "No legal winning set existed, so this legal setting is accurate.";
     else detail.textContent = "A winning set was available. This setting costs an accuracy point.";
     const pills = document.createElement("div");
@@ -265,6 +270,19 @@
     low.textContent = `Low: ${comparisonText(result.lowComparison)}`;
     pills.append(high, low);
     wrap.append(banner, detail, pills);
+    return wrap;
+  }
+
+  function automaticPushBanner() {
+    const wrap = document.createElement("div");
+    wrap.className = "automatic-push-result";
+    const banner = document.createElement("div");
+    banner.className = "set-result-banner push";
+    banner.textContent = "— Automatic Push";
+    const detail = document.createElement("p");
+    detail.className = "set-result-detail";
+    detail.textContent = "The dealer has Ace-high Pai Gow, so every player hand pushes and no setting is needed.";
+    wrap.append(banner, detail);
     return wrap;
   }
 
@@ -314,7 +332,17 @@
     label.className = "zone-label";
     label.textContent = round.completed ? "Your Set Hand" : "Your 7 Cards";
     playerZone.append(label);
-    if (round.completed) {
+    if (round.automaticPush) {
+      label.textContent = "Your 7 Cards · No Setting Needed";
+      const fan = document.createElement("div");
+      fan.className = `player-fan${round.justDealt ? " animate" : ""}`;
+      E.sortCards(round.playerCards).forEach((card, index) => {
+        const node = cardElement(card, { className: "fan-card", index });
+        node.style.setProperty("--angle", `${FAN_ANGLES[index]}deg`);
+        fan.append(node);
+      });
+      playerZone.append(fan, automaticPushBanner());
+    } else if (round.completed) {
       playerZone.append(makeSetLayout(round.playerSet, "player"));
       playerZone.append(resultBanner(round));
     } else {
@@ -422,7 +450,8 @@
     else if (round.result.outcome === "push") p.pushes += 1;
     else p.losses += 1;
     p.balance += resultUnits(round.result.outcome);
-    p.optimalBalance += resultUnits(round.analysis.best.result.outcome);
+    const optimalOutcome = round.automaticPush ? "push" : round.analysis.best.result.outcome;
+    p.optimalBalance += resultUnits(optimalOutcome);
     p.history.push(p.balance);
     p.optimalHistory.push(p.optimalBalance);
     if (p.history.length > 301) p.history.shift();
@@ -452,10 +481,24 @@
     el.playIndicator.classList.add("pulse");
   }
 
+  function settleAutomaticPush(mode, round) {
+    if (!round || !round.automaticPush || round.completed) return;
+    round.completed = true;
+    round.accurate = true;
+    round.result = { outcome: "push", highComparison: 0, lowComparison: 0, aceHighPush: true };
+    round.message = "Dealer Ace-high Pai Gow — every player hand automatically pushes. No setting is needed.";
+    round.messageClass = "correct";
+    if (mode === "play") completePlayRound(round);
+    else if (mode === "train") completeTrainRound(round);
+    else completeChallengeRound(round);
+  }
+
   function startRound(mode) {
-    if (mode === "play") state.play.round = newRound();
-    else if (mode === "train") state.train.round = newRound();
-    else state.challenge.round = newRound();
+    const round = newRound();
+    if (mode === "play") state.play.round = round;
+    else if (mode === "train") state.train.round = round;
+    else state.challenge.round = round;
+    settleAutomaticPush(mode, round);
     renderRound(mode);
   }
 
@@ -472,7 +515,11 @@
       controls.set.classList.toggle("hidden", !round || round.completed);
       controls.next.classList.toggle("hidden", Boolean(round && !round.completed));
     }
+    if (mode === "train") {
+      controls.set.classList.toggle("hidden", Boolean(round && round.automaticPush));
+    }
     if (mode === "challenge") {
+      controls.set.classList.toggle("hidden", Boolean(round && round.automaticPush));
       controls.next.classList.toggle("hidden", !round || !round.completed || state.challenge.number >= CHALLENGE_HANDS);
       el.challengeProgress.textContent = `Hand ${state.challenge.number} of ${CHALLENGE_HANDS}`;
     }
@@ -635,7 +682,10 @@
       tab.setAttribute("aria-selected", String(active));
     });
     Object.entries(el.panels).forEach(([name, panel]) => panel.classList.toggle("hidden", name !== mode));
-    if (mode === "train" && !state.train.round) state.train.round = newRound();
+    if (mode === "train" && !state.train.round) {
+      state.train.round = newRound();
+      settleAutomaticPush("train", state.train.round);
+    }
     if (mode === "lookup") renderLookup();
     if (mode === "play") renderRound("play");
     if (mode === "train") renderRound("train");
@@ -794,15 +844,18 @@
   function findLookupSet() {
     try {
       const dealerSet = E.houseWaySet(state.lookup.dealer);
+      if (E.dealerHasAceHighPaiGow(dealerSet)) {
+        el.lookupResult.innerHTML = `<div class="lookup-verdict"><strong>Automatic Push</strong><span>The dealer has Ace-high Pai Gow, so every player hand pushes. No player setting is needed.</span></div><div class="lookup-set-grid automatic-push-lookup"><section class="lookup-set-card"><h3>Dealer · House Way</h3>${resultSetMarkup(dealerSet)}<p>${dealerSet.houseRule}</p></section><section class="lookup-set-card no-setting-card"><h3>Player</h3><div class="no-setting-symbol">—</div><p>Do not set the hand. Deal the next round.</p></section></div>`;
+        el.lookupResult.classList.remove("hidden");
+        setLookupMessage("Automatic push — no player setting is needed.");
+        return;
+      }
       const solution = E.findBestPlayerSet(state.lookup.player, dealerSet);
       const playerSet = solution.best;
       const result = playerSet.result;
       let title;
       let subtitle;
-      if (result.aceHighPush) {
-        title = "Automatic Push";
-        subtitle = "The dealer has Ace-high Pai Gow, so the base wager pushes before your setting matters.";
-      } else if (result.outcome === "win") {
+      if (result.outcome === "win") {
         title = "El Jefe Found a Winning Set";
         subtitle = "This is one legal way to beat both dealer hands.";
       } else if (result.outcome === "push") {
@@ -823,6 +876,7 @@
 
   function startChallenge() {
     state.challenge = { active: true, number: 1, correct: 0, round: newRound(), misses: [] };
+    settleAutomaticPush("challenge", state.challenge.round);
     el.challengeLaunch.classList.add("hidden");
     el.modeTabs.classList.add("hidden");
     Object.values(el.panels).forEach(panel => panel.classList.add("hidden"));
@@ -836,6 +890,7 @@
     if (!state.challenge.round || !state.challenge.round.completed) return;
     state.challenge.number += 1;
     state.challenge.round = newRound();
+    settleAutomaticPush("challenge", state.challenge.round);
     renderRound("challenge");
   }
 
