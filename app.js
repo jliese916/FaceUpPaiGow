@@ -482,7 +482,17 @@
     const challenge = state.challenge;
     if (round.accurate) challenge.correct += 1;
     else challenge.misses.push(mistakeSnapshot(round, challenge.number));
-    if (challenge.number >= CHALLENGE_HANDS) finishChallenge();
+
+    if (challenge.number >= CHALLENGE_HANDS) {
+      finishChallenge();
+      return;
+    }
+
+    // Challenge feedback stays sealed: record the decision and immediately
+    // replace the completed round before anything can reveal its result.
+    challenge.number += 1;
+    challenge.round = newRound();
+    settleAutomaticPush("challenge", challenge.round);
   }
 
   function pulseIndicator(correct) {
@@ -534,7 +544,8 @@
     }
     if (mode === "challenge") {
       controls.set.classList.toggle("hidden", Boolean(round && round.automaticPush));
-      controls.next.classList.toggle("hidden", !round || !round.completed || state.challenge.number >= CHALLENGE_HANDS);
+      controls.next.disabled = true;
+      controls.next.classList.add("hidden");
       el.challengeProgress.textContent = `Hand ${state.challenge.number} of ${CHALLENGE_HANDS}`;
     }
     renderStats();

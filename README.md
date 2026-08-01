@@ -1,6 +1,6 @@
 # Casa del Jefe — The Pai Gow Practice Pit
 
-A standalone, dependency-free Face Up Pai Gow Poker trainer designed to match the other Casa del Jefe casino trainers.
+A standalone, dependency-free Face Up Pai Gow Poker practice app designed to match the other Casa del Jefe casino rooms.
 
 ## Included
 
@@ -42,3 +42,11 @@ node test-engine.js
 - Detects dealer Ace-high Pai Gow directly from the seven dealt dealer cards.
 - Forces newly deployed JavaScript and service-worker updates to activate immediately.
 - Uses network-first loading for page navigations so an older cached build cannot silently remain active.
+
+
+## v6 sealed Challenge results
+
+- El Jefe Challenge decisions are recorded without revealing the hand outcome or accuracy.
+- After a legal top hand is submitted, the next challenge hand appears immediately.
+- Automatic-push hands are counted silently and skipped without exposing the result.
+- Full scoring and missed-hand review remain hidden until the 100-hand summary.
