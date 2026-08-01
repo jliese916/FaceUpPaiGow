@@ -50,3 +50,10 @@ node test-engine.js
 - After a legal top hand is submitted, the next challenge hand appears immediately.
 - Automatic-push hands are counted silently and skipped without exposing the result.
 - Full scoring and missed-hand review remain hidden until the 100-hand summary.
+
+## v7 Grand Master certificate redesign
+
+- Matches the cooler Let It Ride Hall of Masters certificate styling.
+- Adds the purple-and-gold radial background, animated rays, suit insignia, crown crest, and enhanced score panel.
+- Retains the Face Up Pai Gow title, perfect hand-setting designation, and challenge date.
+

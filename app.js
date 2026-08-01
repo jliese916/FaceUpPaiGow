@@ -926,7 +926,20 @@
     const perfect = challenge.correct === CHALLENGE_HANDS;
     const today = new Intl.DateTimeFormat(undefined, { year: "numeric", month: "long", day: "numeric" }).format(new Date());
     const result = perfect
-      ? `<div class="certificate"><div class="certificate-small">CASA DEL JEFE · HALL OF MASTERS</div><div class="certificate-title">FACE UP PAI GOW<br>GRAND MASTER</div><div class="certificate-rule"></div><p>This certifies a flawless performance in the 100-hand El Jefe Face Up Pai Gow Challenge.</p><div class="certificate-score">100 / 100 · 100%</div><p><strong>Perfect Hand Setting</strong></p><p>Certified by El Jefe · ${today}</p><div class="certificate-share">Screenshot this Grand Master certificate and send it to the group text thread.</div></div>`
+      ? `<div class="certificate grand-master">
+          <div class="grand-master-rays" aria-hidden="true"></div>
+          <div class="grand-master-stars" aria-hidden="true">♠ · ♦ · ♣ · ♥</div>
+          <div class="certificate-small">CASA DEL JEFE · HALL OF MASTERS</div>
+          <div class="certificate-title">FACE UP PAI GOW<br>GRAND MASTER</div>
+          <div class="certificate-rule"></div>
+          <p>This certifies a flawless performance in the ${CHALLENGE_HANDS}-hand El Jefe Face Up Pai Gow Challenge.</p>
+          <div class="certificate-score">${CHALLENGE_HANDS} / ${CHALLENGE_HANDS} · 100%</div>
+          <div class="grand-master-crest" aria-hidden="true">♛</div>
+          <div class="grand-master-subtitle">Perfect Hand Setting</div>
+          <p>Certified by El Jefe</p>
+          <p>${today}</p>
+          <div class="certificate-share">Screenshot this Grand Master certificate and send it to the group text thread.</div>
+        </div>`
       : `<div class="challenge-fail"><h2>Not Quite Grand Master</h2><div class="challenge-final-score">${challenge.correct} / ${CHALLENGE_HANDS} · ${percent(challenge.correct, CHALLENGE_HANDS)}</div><p>Grand Master certification requires a perfect 100 out of 100. You missed ${challenge.misses.length} ${challenge.misses.length === 1 ? "winning set" : "winning sets"}.</p><p>Visit Train mode, sharpen the eye, and make El Jefe proud.</p></div>`;
     const review = challenge.misses.length
       ? `<details class="challenge-review"><summary>Review missed winning sets (${challenge.misses.length})</summary><div class="mistake-list">${challenge.misses.map(miss => `<article class="mistake-card"><h3>Hand ${miss.number}: chose a ${miss.outcome}</h3><p>Your setting</p>${renderMiniSet(miss.chosen)}<p>One winning setting</p>${renderMiniSet(miss.winning)}</article>`).join("")}</div></details>`
@@ -981,6 +994,6 @@
       refreshing = true;
       window.location.reload();
     });
-    window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js?v=6", { updateViaCache: "none" }).then(registration => registration.update()).catch(() => {}));
+    window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js?v=8", { updateViaCache: "none" }).then(registration => registration.update()).catch(() => {}));
   }
 })();

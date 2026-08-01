@@ -279,6 +279,25 @@ button.card { cursor: pointer; }
 .certificate p { margin: 10px auto; max-width: 520px; line-height: 1.45; }
 .certificate-score { display: inline-block; margin: 8px 0; padding: 8px 16px; border: 1px solid #b8860b; background: rgba(255,255,255,.55); font-size: 1.2rem; font-weight: 900; }
 .certificate-share { margin: 23px -22px -24px; padding: 11px 15px; background: #3f2a0d; color: #fff7da; font-family: system-ui, sans-serif; font-size: .77rem; font-weight: 800; }
+/* Perfect Challenge certificate — matched to the Let It Ride Hall of Masters design */
+.certificate.grand-master { border: 9px double #f3c969; background: radial-gradient(circle at 50% 23%, rgba(86,68,150,.9), rgba(20,17,50,.98) 48%, #080713 100%); color: #fff7d6; box-shadow: inset 0 0 0 2px rgba(255,231,155,.5), inset 0 0 50px rgba(174,132,255,.22), 0 15px 34px rgba(25,18,62,.36); }
+.certificate.grand-master::before { content: none; }
+.grand-master .certificate-corner { color: #f6dc83; text-shadow: 0 0 10px rgba(246,220,131,.6); }
+.grand-master .certificate-corner.red { color: #ff90a7; }
+.grand-master .certificate-small { color: #d9c6ff; }
+.grand-master .certificate-title { margin-top: 6px; color: #fff1a8; font-size: clamp(2.3rem, 10vw, 3.6rem); text-shadow: 0 2px 0 #7b5f12, 0 0 18px rgba(255,229,132,.35); }
+.grand-master .certificate-rule { height: 3px; background: linear-gradient(90deg, transparent, #f3c969, transparent); }
+.grand-master p { position: relative; color: #f1eafb; }
+.grand-master .certificate-score { position: relative; border: 1px solid #f3c969; background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,214,93,.12)); color: #fff4bc; box-shadow: 0 0 18px rgba(243,201,105,.18); }
+.grand-master .certificate-signature { border-color: #f3c969; color: #fff0ad; }
+.grand-master .certificate-signature-label { color: #d8c7ff; }
+.grand-master .certificate-share { background: linear-gradient(90deg, #6f4dba, #b17a23, #6f4dba); color: #fff; }
+.grand-master-stars { position: relative; color: #ffe99c; font-size: .74rem; font-weight: 900; letter-spacing: .14em; }
+.grand-master-crest { position: relative; margin: 6px auto -3px; color: #ffe99c; font-size: 2.2rem; text-shadow: 0 0 16px rgba(255,233,156,.6); }
+.grand-master-subtitle { position: relative; color: #e4d5ff; font-size: 1.05rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.grand-master-rays { position: absolute; inset: -55%; background: repeating-conic-gradient(from 0deg, rgba(255,232,139,.07) 0 5deg, transparent 5deg 13deg); animation: grandMasterGlow 18s linear infinite; pointer-events: none; }
+@keyframes grandMasterGlow { to { transform: rotate(360deg); } }
+
 .challenge-fail { padding: 25px 18px; border: 2px solid #d6c491; border-radius: 18px; background: #f8f1df; color: #24352e; text-align: center; }
 .challenge-fail h2 { margin: 5px 0 12px; }
 .challenge-final-score { display: inline-block; padding: 8px 14px; border-radius: 10px; background: #e7dcc0; font-size: 1.2rem; font-weight: 900; }
