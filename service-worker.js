@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "casa-face-up-pai-gow-v2";
+const CACHE_NAME = "casa-face-up-pai-gow-v4";
 const ASSETS = ["./", "./index.html", "./styles.css", "./app.js", "./pai-gow-engine.js", "./manifest.webmanifest", "./jefe-crest.svg", "./favicon-64.png", "./apple-touch-icon.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", event => {

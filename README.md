@@ -4,14 +4,15 @@ A standalone, dependency-free Face Up Pai Gow Poker trainer designed to match th
 
 ## Included
 
-- Play mode with bankroll history, outcomes, accuracy, and missed-winning-set review
+- Play mode with bankroll history comparing the player's results against optimal setting on the same hands, plus outcomes, accuracy, and missed-winning-set review
 - Train mode with hand-setting accuracy
-- Look Up mode for seven dealer cards and seven player cards
+- Look Up mode for seven dealer cards and seven player cards, including Import from Play
 - MGM-style dealer house-way setting based on the supplied house way
 - Full 53-card Pai Gow evaluator with the semi-wild Joker
 - Face Up Pai Gow automatic push when the dealer has Ace-high Pai Gow
 - 100-hand El Jefe Challenge requiring 100% for the Grand Master certificate
 - Responsive seven-card fan, installable web-app manifest, and offline service worker
+- Casa del Jefe crest card backs, larger card ranks, and a four-color horizontal Joker design
 
 ## Publish with GitHub Pages
 

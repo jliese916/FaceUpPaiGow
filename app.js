@@ -54,6 +54,7 @@
     rankPicker: $("#rankPicker"),
     suitPicker: $("#suitPicker"),
     jokerPicker: $("#jokerPicker"),
+    importFromPlay: $("#importFromPlay"),
     removeLookup: $("#removeLookup"),
     clearLookup: $("#clearLookup"),
     findBestSet: $("#findBestSet"),
@@ -70,22 +71,45 @@
   };
 
   function emptyPlay() {
-    return { balance: 0, hands: 0, correct: 0, wins: 0, pushes: 0, losses: 0, history: [0], mistakes: [], round: null };
+    return {
+      balance: 0,
+      optimalBalance: 0,
+      hands: 0,
+      correct: 0,
+      wins: 0,
+      pushes: 0,
+      losses: 0,
+      history: [0],
+      optimalHistory: [0],
+      mistakes: [],
+      round: null
+    };
   }
 
   function loadPlay() {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
       if (!saved || typeof saved !== "object") return emptyPlay();
+      const balance = Number(saved.balance) || 0;
+      const history = Array.isArray(saved.history) && saved.history.length && saved.history.every(value => Number.isFinite(Number(value)))
+        ? saved.history.map(Number)
+        : (balance === 0 ? [0] : [0, balance]);
+      const hasOptimalBalance = saved.optimalBalance !== undefined && Number.isFinite(Number(saved.optimalBalance));
+      const optimalBalance = hasOptimalBalance ? Number(saved.optimalBalance) : balance;
+      const optimalHistory = Array.isArray(saved.optimalHistory) && saved.optimalHistory.length && saved.optimalHistory.every(value => Number.isFinite(Number(value)))
+        ? saved.optimalHistory.map(Number)
+        : [...history];
       return {
         ...emptyPlay(),
-        balance: Number(saved.balance) || 0,
+        balance,
+        optimalBalance,
         hands: Number(saved.hands) || 0,
         correct: Number(saved.correct) || 0,
         wins: Number(saved.wins) || 0,
         pushes: Number(saved.pushes) || 0,
         losses: Number(saved.losses) || 0,
-        history: Array.isArray(saved.history) && saved.history.length ? saved.history.map(Number) : [0],
+        history,
+        optimalHistory,
         mistakes: Array.isArray(saved.mistakes) ? saved.mistakes.slice(-25) : []
       };
     } catch (error) {
@@ -99,12 +123,14 @@
       const p = state.play;
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         balance: p.balance,
+        optimalBalance: p.optimalBalance,
         hands: p.hands,
         correct: p.correct,
         wins: p.wins,
         pushes: p.pushes,
         losses: p.losses,
         history: p.history.slice(-301),
+        optimalHistory: p.optimalHistory.slice(-301),
         mistakes: p.mistakes.slice(-25)
       }));
     } catch (error) {
@@ -119,6 +145,15 @@
   function formatUnits(value, signed = false) {
     const sign = signed && value > 0 ? "+" : "";
     return `${sign}${value} ${Math.abs(value) === 1 ? "unit" : "units"}`;
+  }
+
+  function resultUnits(outcome) {
+    return outcome === "win" ? 1 : outcome === "loss" ? -1 : 0;
+  }
+
+  function deltaLabel(value) {
+    if (value === 0) return "0 units";
+    return `${value > 0 ? "+" : "−"}${Math.abs(value)} ${Math.abs(value) === 1 ? "unit" : "units"}`;
   }
 
   function percent(correct, total) {
@@ -141,7 +176,7 @@
     }
     if (card.joker) {
       node.classList.add("joker-card");
-      node.innerHTML = `<span class="joker-corner joker-corner-top">★</span><span class="joker-word">JOKER</span><span class="joker-star">★</span><span class="joker-corner joker-corner-bottom">★</span>`;
+      node.innerHTML = `<span class="joker-corner joker-corner-top">★</span><span class="joker-word">JOKER</span><span class="joker-stripes joker-stripes-left"><i></i><i></i></span><span class="joker-star">★</span><span class="joker-stripes joker-stripes-right"><i></i><i></i></span><span class="joker-corner joker-corner-bottom">★</span>`;
     } else {
       const suitClass = SUIT_CLASSES[card.suit];
       node.classList.add(suitClass);
@@ -383,11 +418,15 @@
     const p = state.play;
     p.hands += 1;
     if (round.accurate) p.correct += 1;
-    if (round.result.outcome === "win") { p.wins += 1; p.balance += 1; }
+    if (round.result.outcome === "win") p.wins += 1;
     else if (round.result.outcome === "push") p.pushes += 1;
-    else { p.losses += 1; p.balance -= 1; }
+    else p.losses += 1;
+    p.balance += resultUnits(round.result.outcome);
+    p.optimalBalance += resultUnits(round.analysis.best.result.outcome);
     p.history.push(p.balance);
+    p.optimalHistory.push(p.optimalBalance);
     if (p.history.length > 301) p.history.shift();
+    if (p.optimalHistory.length > 301) p.optimalHistory.shift();
     if (!round.accurate) p.mistakes.push(mistakeSnapshot(round, p.hands));
     if (p.mistakes.length > 25) p.mistakes.shift();
     savePlay();
@@ -428,7 +467,11 @@
     controls.message.className = `table-message${round && round.messageClass ? ` ${round.messageClass}` : ""}`;
     controls.set.disabled = !round || round.completed || round.selected.length !== 2;
     controls.next.disabled = Boolean(round && !round.completed);
-    if (mode === "play") controls.next.textContent = round && round.completed ? "Deal Again" : "Deal";
+    if (mode === "play") {
+      controls.next.textContent = round && round.completed ? "Deal Again" : "Deal";
+      controls.set.classList.toggle("hidden", !round || round.completed);
+      controls.next.classList.toggle("hidden", Boolean(round && !round.completed));
+    }
     if (mode === "challenge") {
       controls.next.classList.toggle("hidden", !round || !round.completed || state.challenge.number >= CHALLENGE_HANDS);
       el.challengeProgress.textContent = `Hand ${state.challenge.number} of ${CHALLENGE_HANDS}`;
@@ -447,7 +490,10 @@
     el.playPushes.textContent = String(p.pushes);
     el.playLosses.textContent = String(p.losses);
     el.playChartSummary.textContent = `${p.hands} completed ${p.hands === 1 ? "hand" : "hands"}`;
-    el.playDeltaSummary.textContent = `Session result: ${formatUnits(p.balance, p.balance > 0)}`;
+    const delta = p.optimalBalance - p.balance;
+    el.playDeltaSummary.textContent = `Optimal − you: ${deltaLabel(delta)}`;
+    el.playDeltaSummary.classList.toggle("behind", delta > 0);
+    el.playDeltaSummary.classList.toggle("ahead", delta < 0);
     el.trainScore.textContent = `${state.train.correct} / ${state.train.total}`;
     el.trainAccuracy.textContent = percent(state.train.correct, state.train.total);
     renderMistakes();
@@ -480,14 +526,17 @@
     const ctx = canvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
-    const values = state.play.history.length ? state.play.history : [0];
-    const min = Math.min(0, ...values);
-    const max = Math.max(0, ...values);
+    const actualValues = state.play.history.length ? state.play.history : [0];
+    const optimalValues = state.play.optimalHistory.length ? state.play.optimalHistory : [0];
+    const allValues = [...actualValues, ...optimalValues];
+    const pointCount = Math.max(actualValues.length, optimalValues.length);
+    const min = Math.min(0, ...allValues);
+    const max = Math.max(0, ...allValues);
     const spread = Math.max(4, max - min);
     const low = min - spread * .18;
     const high = max + spread * .18;
-    const left = 40, right = 14, top = 12, bottom = 25;
-    const xAt = index => left + (values.length === 1 ? 0 : index / (values.length - 1) * (width - left - right));
+    const left = 40, right = 88, top = 12, bottom = 25;
+    const xAt = index => left + (pointCount === 1 ? 0 : index / (pointCount - 1) * (width - left - right));
     const yAt = value => top + (high - value) / (high - low || 1) * (height - top - bottom);
     ctx.font = "11px system-ui, sans-serif";
     ctx.fillStyle = "rgba(232,226,207,.72)";
@@ -498,16 +547,84 @@
       ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(width - right, y); ctx.stroke();
       ctx.fillText(String(Math.round(value)), 6, y + 4);
     }
-    ctx.strokeStyle = "#e7c86a";
-    ctx.lineWidth = 3;
-    ctx.lineJoin = "round";
-    ctx.beginPath();
-    values.forEach((value, index) => index ? ctx.lineTo(xAt(index), yAt(value)) : ctx.moveTo(xAt(index), yAt(value)));
-    ctx.stroke();
+    const zeroY = yAt(0);
+    ctx.save();
+    ctx.strokeStyle = "rgba(231,200,106,.4)";
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath(); ctx.moveTo(left, zeroY); ctx.lineTo(width - right, zeroY); ctx.stroke();
+    ctx.restore();
+
+    const buildPath = values => {
+      ctx.beginPath();
+      values.forEach((value, index) => index ? ctx.lineTo(xAt(index), yAt(value)) : ctx.moveTo(xAt(index), yAt(value)));
+    };
+
+    if (actualValues.length > 1) {
+      const drawClippedLine = (clipTop, clipBottom, color) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, clipTop, width, Math.max(0, clipBottom - clipTop));
+        ctx.clip();
+        buildPath(actualValues);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.stroke();
+        ctx.restore();
+      };
+      drawClippedLine(0, zeroY, "#4ccf79");
+      drawClippedLine(zeroY, height, "#ff6b6b");
+    }
+
+    if (optimalValues.length > 1) {
+      buildPath(optimalValues);
+      ctx.strokeStyle = "#e7c86a";
+      ctx.lineWidth = 2.25;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.stroke();
+    }
+
+    const actualLast = actualValues[actualValues.length - 1];
+    const optimalLast = optimalValues[optimalValues.length - 1];
+    ctx.fillStyle = actualLast >= 0 ? "#4ccf79" : "#ff6b6b";
+    ctx.beginPath(); ctx.arc(xAt(actualValues.length - 1), yAt(actualLast), 4, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#e7c86a";
-    ctx.beginPath(); ctx.arc(xAt(values.length - 1), yAt(values[values.length - 1]), 4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(xAt(optimalValues.length - 1), yAt(optimalLast), 3.5, 0, Math.PI * 2); ctx.fill();
+
+    const delta = optimalLast - actualLast;
+    const actualY = yAt(actualLast);
+    const optimalY = yAt(optimalLast);
+    const topY = Math.min(actualY, optimalY);
+    const bottomY = Math.max(actualY, optimalY);
+    const bracketX = xAt(pointCount - 1) + 12;
+    const labelX = bracketX + 7;
+    const labelY = Math.min(height - 11, Math.max(11, (topY + bottomY) / 2));
+    const gapLabel = deltaLabel(delta);
+    ctx.save();
+    ctx.strokeStyle = "rgba(231,200,106,.78)";
+    ctx.fillStyle = "#f8f1df";
+    ctx.lineWidth = 1.4;
+    ctx.lineCap = "round";
+    if (Math.abs(actualY - optimalY) < 2.5) {
+      ctx.beginPath(); ctx.moveTo(bracketX - 4, actualY); ctx.lineTo(bracketX + 4, actualY); ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(bracketX, topY); ctx.lineTo(bracketX, bottomY);
+      ctx.moveTo(bracketX - 4, topY); ctx.lineTo(bracketX + 4, topY);
+      ctx.moveTo(bracketX - 4, bottomY); ctx.lineTo(bracketX + 4, bottomY);
+      ctx.stroke();
+    }
+    ctx.font = "700 10px system-ui, sans-serif";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(gapLabel, labelX, labelY);
+    ctx.restore();
+
     ctx.fillStyle = "rgba(232,226,207,.72)";
     ctx.fillText("Hands", width - 43, height - 6);
+    canvas.setAttribute("aria-label", `Line chart comparing your bankroll with optimal play. Current optimal-minus-you difference: ${gapLabel}.`);
   }
 
   function setMode(mode) {
@@ -637,6 +754,7 @@
     renderLookupHand(el.lookupPlayer, "player");
     renderLookupPickers();
     el.removeLookup.disabled = !state.lookup[state.lookup.activeHand][state.lookup.activeIndex];
+    el.importFromPlay.disabled = !state.play.round;
     el.findBestSet.disabled = allLookupCards().length !== 14;
   }
 
@@ -652,6 +770,20 @@
     state.lookup = emptyLookup();
     el.lookupResult.classList.add("hidden");
     setLookupMessage("Select a slot, then choose its rank and suit.");
+    renderLookup();
+  }
+
+  function importPlayHand() {
+    const round = state.play.round;
+    if (!round) return;
+    const lookup = emptyLookup();
+    lookup.dealer = round.dealerCards.map(card => ({ ...card }));
+    lookup.player = round.playerCards.map(card => ({ ...card }));
+    lookup.activeHand = "dealer";
+    lookup.activeIndex = 0;
+    state.lookup = lookup;
+    el.lookupResult.classList.add("hidden");
+    setLookupMessage("Current Play hand imported. Find the best set when ready.");
     renderLookup();
   }
 
@@ -741,6 +873,7 @@
   el.resetPlay.addEventListener("click", resetPlay);
   el.resetTrain.addEventListener("click", resetTrain);
   el.jokerPicker.addEventListener("click", addLookupJoker);
+  el.importFromPlay.addEventListener("click", importPlayHand);
   el.removeLookup.addEventListener("click", removeLookupCard);
   el.clearLookup.addEventListener("click", clearLookup);
   el.findBestSet.addEventListener("click", findLookupSet);

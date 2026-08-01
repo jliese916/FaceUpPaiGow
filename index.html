@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" href="./favicon-64.png">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=2">
+  <link rel="stylesheet" href="./styles.css?v=4">
 </head>
 <body>
   <main class="app">
@@ -60,9 +60,9 @@
       </div>
       <section class="balance-card">
         <div class="balance-heading"><span>Bankroll history</span><small id="playChartSummary">0 completed hands</small></div>
-        <div class="chart-legend"><span><i></i>Your play</span></div>
-        <div class="chart-pill" id="playDeltaSummary">Session result: 0 units</div>
-        <canvas class="balance-chart" id="playBalanceChart" role="img" aria-label="Line chart showing bankroll history"></canvas>
+        <div class="chart-legend" aria-hidden="true"><span><i class="legend-line legend-actual"></i>Your play</span><span><i class="legend-line legend-optimal"></i>Optimal play</span></div>
+        <div class="chart-pill" id="playDeltaSummary">Optimal − you: 0 units</div>
+        <canvas class="balance-chart" id="playBalanceChart" role="img" aria-label="Line chart comparing your bankroll with optimal play using the same hands"></canvas>
       </section>
       <section class="session-hub">
         <div class="session-heading"><div><strong>Session review</strong><small>Accuracy only drops when a winning set existed and you missed it.</small></div><button class="danger-link" id="resetPlay" type="button">Reset session</button></div>
@@ -100,7 +100,7 @@
         <div class="suit-picker" id="suitPicker"></div>
         <button class="joker-button" id="jokerPicker" type="button">JOKER</button>
       </div>
-      <div class="lookup-controls"><button class="secondary-button" id="removeLookup" type="button">Remove Selected</button><button class="secondary-button" id="clearLookup" type="button">Clear All</button></div>
+      <div class="lookup-controls"><button class="secondary-button import-play-button" id="importFromPlay" type="button" disabled>Import from Play</button><button class="secondary-button" id="removeLookup" type="button">Remove Selected</button><button class="secondary-button" id="clearLookup" type="button">Clear All</button></div>
       <button class="primary-button lookup-find" id="findBestSet" type="button" disabled>Find the Best Set</button>
       <div class="lookup-message" id="lookupMessage" aria-live="polite">Select a slot, then choose its rank and suit.</div>
       <div class="lookup-result hidden" id="lookupResult"></div>
@@ -134,7 +134,7 @@
 
     <footer><a class="footer-link" href="https://jliese916.github.io/"><img src="./jefe-crest.svg" alt="">Return to Casa del Jefe</a></footer>
   </main>
-  <script src="./pai-gow-engine.js?v=2"></script>
-  <script defer src="./app.js?v=2"></script>
+  <script src="./pai-gow-engine.js?v=4"></script>
+  <script defer src="./app.js?v=4"></script>
 </body>
 </html>
