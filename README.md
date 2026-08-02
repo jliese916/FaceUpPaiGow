@@ -68,3 +68,5 @@ node test-engine.js
 - Condenses the table labels and removes the dealer house-way explanation and "Your Set Hand" heading.
 - Keeps only the round result visible after play; high-hand, low-hand, and net-result comparisons are inside a collapsed disclosure panel.
 - Updates session and challenge reviews to include missed pushes as missed best results.
+
+- Result details name the specific high hands and show only the kickers needed to explain the comparison.

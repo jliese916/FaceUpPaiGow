@@ -10,6 +10,7 @@
   const CHALLENGE_HANDS = 100;
   const SUIT_CLASSES = ["suit-hearts", "suit-diamonds", "suit-clubs", "suit-spades"];
   const FAN_ANGLES = [-15, -10, -5, 0, 5, 10, 15];
+  const SETTING_PROMPT = "Select two cards for the player low hand, or muck.";
 
   const el = {
     tabs: $$(".mode-tab"),
@@ -224,7 +225,7 @@
       justDealt: true,
       message: automaticPush
         ? "Dealer Ace-high Pai Gow — every player hand automatically pushes. No setting is needed."
-        : "Select two cards for the Player Low Hand, or muck with zero or one selected.",
+        : SETTING_PROMPT,
       messageClass: automaticPush ? "correct" : ""
     };
   }
@@ -293,8 +294,8 @@
       );
     } else {
       panel.append(
-        detailRow("High hand", `${round.playerSet.high.name} vs. ${round.dealerSet.high.name} — ${comparisonText(result.highComparison)}`),
-        detailRow("Low hand", `${round.playerSet.low.name} vs. ${round.dealerSet.low.name} — ${comparisonText(result.lowComparison)}`),
+        detailRow("High hand", `${E.describeHighForComparison(round.playerSet.high, round.dealerSet.high)} vs. ${E.describeHighForComparison(round.dealerSet.high, round.playerSet.high)} — ${comparisonText(result.highComparison)}`),
+        detailRow("Low hand", `${E.describeLowHand(round.playerSet.low)} vs. ${E.describeLowHand(round.dealerSet.low)} — ${comparisonText(result.lowComparison)}`),
         detailRow("Net result", formatUnits(resultUnits(result.outcome), true), "net-result")
       );
     }
@@ -381,9 +382,6 @@
       }
       playerZone.append(resultDisclosure(round));
     } else {
-      const instruction = document.createElement("div");
-      instruction.className = "player-instruction";
-      instruction.textContent = `Player Low Hand · ${round.selected.length} of 2 selected`;
       const fan = document.createElement("div");
       fan.className = `player-fan${round.justDealt ? " animate" : ""}`;
       E.sortCards(round.playerCards).forEach((card, index) => {
@@ -394,7 +392,7 @@
         node.addEventListener("click", () => toggleCard(mode, card.id));
         fan.append(node);
       });
-      playerZone.append(instruction, fan);
+      playerZone.append(fan);
     }
     container.append(dealerZone, playerZone);
     round.justDealt = false;
@@ -423,15 +421,11 @@
     const index = round.selected.indexOf(id);
     if (index >= 0) {
       round.selected.splice(index, 1);
-      round.message = round.selected.length
-        ? "Select one more card for the Player Low Hand, or muck now."
-        : "Select two cards for the Player Low Hand, or muck with zero or one selected.";
+      round.message = mode === "challenge" ? "Select two cards for the player low hand." : SETTING_PROMPT;
       round.messageClass = "";
     } else if (round.selected.length < 2) {
       round.selected.push(id);
-      round.message = round.selected.length === 2
-        ? "Player Low Hand selected. Set the hand when ready."
-        : "Select one more card for the Player Low Hand, or muck now.";
+      round.message = mode === "challenge" ? "Select two cards for the player low hand." : SETTING_PROMPT;
       round.messageClass = "";
     }
     else {
@@ -554,6 +548,7 @@
     // replace the completed round before anything can reveal its result.
     challenge.number += 1;
     challenge.round = newRound();
+    if (!challenge.round.automaticPush) challenge.round.message = "Select two cards for the player low hand.";
     settleAutomaticPush("challenge", challenge.round);
   }
 
@@ -581,6 +576,7 @@
 
   function startRound(mode) {
     const round = newRound();
+    if (mode === "challenge" && !round.automaticPush) round.message = "Select two cards for the player low hand.";
     if (mode === "play") state.play.round = round;
     else if (mode === "train") state.train.round = round;
     else state.challenge.round = round;
@@ -593,7 +589,7 @@
     const controls = controlsFor(mode);
     if (round && !round.completed && E.dealerHasAceHighPaiGow(round.dealerCards)) settleAutomaticPush(mode, round);
     renderStage(controls.stage, round, mode);
-    controls.message.textContent = round ? round.message : (mode === "play" ? "Press Deal to begin." : "Select exactly two cards for the top hand.");
+    controls.message.textContent = round ? round.message : (mode === "play" ? "Press Deal to begin." : SETTING_PROMPT);
     controls.message.className = `table-message${round && round.messageClass ? ` ${round.messageClass}` : ""}`;
     const activeRound = Boolean(round && !round.completed && !round.automaticPush);
     const canSet = activeRound && round.selected.length === 2;
@@ -979,6 +975,7 @@
 
   function startChallenge() {
     state.challenge = { active: true, number: 1, correct: 0, round: newRound(), misses: [] };
+    if (!state.challenge.round.automaticPush) state.challenge.round.message = "Select two cards for the player low hand.";
     settleAutomaticPush("challenge", state.challenge.round);
     el.challengeLaunch.classList.add("hidden");
     el.modeTabs.classList.add("hidden");
@@ -993,6 +990,7 @@
     if (!state.challenge.round || !state.challenge.round.completed) return;
     state.challenge.number += 1;
     state.challenge.round = newRound();
+    if (!state.challenge.round.automaticPush) state.challenge.round.message = "Select two cards for the player low hand.";
     settleAutomaticPush("challenge", state.challenge.round);
     renderRound("challenge");
   }

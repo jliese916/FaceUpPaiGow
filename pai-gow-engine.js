@@ -5,6 +5,8 @@
   const SUITS = ["♥", "♦", "♣", "♠"];
   const SUIT_NAMES = ["hearts", "diamonds", "clubs", "spades"];
   const FIVE_CATEGORY_NAMES = ["High Card", "One Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush", "Five Aces"];
+  const HAND_RANK_NAMES = { 14: "Ace", 13: "King", 12: "Queen", 11: "Jack", 10: "Ten", 9: "Nine", 8: "Eight", 7: "Seven", 6: "Six", 5: "Five", 4: "Four", 3: "Three", 2: "Two" };
+  const HAND_RANK_PLURALS = { 14: "Aces", 13: "Kings", 12: "Queens", 11: "Jacks", 10: "Tens", 9: "Nines", 8: "Eights", 7: "Sevens", 6: "Sixes", 5: "Fives", 4: "Fours", 3: "Threes", 2: "Twos" };
 
   function createDeck() {
     const deck = [];
@@ -55,6 +57,83 @@
       if (av !== bv) return av > bv ? 1 : -1;
     }
     return 0;
+  }
+
+
+  function handRankName(rank, plural = false) {
+    return (plural ? HAND_RANK_PLURALS : HAND_RANK_NAMES)[rank] || String(rank);
+  }
+
+  function decisiveScoreIndex(firstScore, secondScore, start = 1) {
+    const limit = Math.max(firstScore.length, secondScore.length);
+    for (let index = start; index < limit; index += 1) {
+      if ((firstScore[index] || 0) !== (secondScore[index] || 0)) return index;
+    }
+    return limit - 1;
+  }
+
+  function joinedHandRanks(ranks) {
+    return ranks.map(rank => handRankName(rank)).join("-");
+  }
+
+  function straightDetail(value, suffix) {
+    if (value === 15) return suffix === "straight flush" ? "Royal flush" : "Ace-high straight";
+    if (value === 14) return `A-5 ${suffix}`;
+    return `${handRankName(value)}-high ${suffix}`;
+  }
+
+  function describeHighForComparison(hand, opponent) {
+    const score = hand.score;
+    const sameCategory = Boolean(opponent && opponent.category === hand.category);
+    const decisiveIndex = sameCategory ? decisiveScoreIndex(score, opponent.score) : 1;
+
+    switch (hand.category) {
+      case 0: {
+        const rankCount = sameCategory ? Math.max(1, decisiveIndex) : 1;
+        return `${joinedHandRanks(score.slice(1, 1 + rankCount))} high`;
+      }
+      case 1: {
+        const base = `Pair of ${handRankName(score[1], true)}`;
+        if (!sameCategory || decisiveIndex === 1) return base;
+        const kickers = score.slice(2, decisiveIndex + 1);
+        return `${base} with ${joinedHandRanks(kickers)} ${kickers.length === 1 ? "kicker" : "kickers"}`;
+      }
+      case 2: {
+        const base = `Two pair, ${handRankName(score[1], true)} and ${handRankName(score[2], true)}`;
+        if (!sameCategory || decisiveIndex < 3) return base;
+        return `${base} with ${handRankName(score[3])} kicker`;
+      }
+      case 3: {
+        const base = `Three ${handRankName(score[1], true)}`;
+        if (!sameCategory || decisiveIndex === 1) return base;
+        const kickers = score.slice(2, decisiveIndex + 1);
+        return `${base} with ${joinedHandRanks(kickers)} ${kickers.length === 1 ? "kicker" : "kickers"}`;
+      }
+      case 4:
+        return straightDetail(score[1], "straight");
+      case 5: {
+        const rankCount = sameCategory ? Math.max(1, decisiveIndex) : 1;
+        return `${joinedHandRanks(score.slice(1, 1 + rankCount))} flush`;
+      }
+      case 6:
+        return `${handRankName(score[1], true)} full of ${handRankName(score[2], true)}`;
+      case 7: {
+        const base = `Four ${handRankName(score[1], true)}`;
+        if (!sameCategory || decisiveIndex === 1) return base;
+        return `${base} with ${handRankName(score[2])} kicker`;
+      }
+      case 8:
+        return straightDetail(score[1], "straight flush");
+      case 9:
+        return "Five Aces";
+      default:
+        return hand.name;
+    }
+  }
+
+  function describeLowHand(hand) {
+    if (hand.category === 1) return `Pair of ${handRankName(hand.score[1], true)}`;
+    return `${handRankName(hand.score[1])}-${handRankName(hand.score[2])} high`;
   }
 
   function paiGowStraightValue(ranks) {
@@ -409,6 +488,8 @@
     labelCard,
     effectiveRank,
     compareScore,
+    describeHighForComparison,
+    describeLowHand,
     evaluateFive,
     evaluateTwo,
     enumerateSets,

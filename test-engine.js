@@ -71,6 +71,31 @@ function run() {
   assert(solution.canWin, "Player should have a winning set");
   assert.equal(solution.best.result.outcome, "win");
 
+  const pairQueens = { category: 1, score: [1, 12, 9, 7, 4], name: "One Pair" };
+  const pairJacks = { category: 1, score: [1, 11, 14, 10, 8], name: "One Pair" };
+  assert.equal(engine.describeHighForComparison(pairQueens, pairJacks), "Pair of Queens");
+  assert.equal(engine.describeHighForComparison(pairJacks, pairQueens), "Pair of Jacks");
+
+  const jacksKingTen = { category: 1, score: [1, 11, 13, 10, 7], name: "One Pair" };
+  const jacksKingFour = { category: 1, score: [1, 11, 13, 4, 3], name: "One Pair" };
+  assert.equal(engine.describeHighForComparison(jacksKingTen, jacksKingFour), "Pair of Jacks with King-Ten kickers");
+  assert.equal(engine.describeHighForComparison(jacksKingFour, jacksKingTen), "Pair of Jacks with King-Four kickers");
+
+  const jacksAce = { category: 1, score: [1, 11, 14, 8, 3], name: "One Pair" };
+  const jacksQueen = { category: 1, score: [1, 11, 12, 10, 9], name: "One Pair" };
+  assert.equal(engine.describeHighForComparison(jacksAce, jacksQueen), "Pair of Jacks with Ace kicker");
+  assert.equal(engine.describeHighForComparison(jacksQueen, jacksAce), "Pair of Jacks with Queen kicker");
+
+  const aceKingQueenHigh = { category: 0, score: [0, 14, 13, 12, 8, 3], name: "High Card" };
+  const aceKingJackHigh = { category: 0, score: [0, 14, 13, 11, 10, 9], name: "High Card" };
+  assert.equal(engine.describeHighForComparison(aceKingQueenHigh, aceKingJackHigh), "Ace-King-Queen high");
+  assert.equal(engine.describeHighForComparison(aceKingJackHigh, aceKingQueenHigh), "Ace-King-Jack high");
+
+  const aceTenLow = { category: 0, score: [0, 14, 10], name: "A-10 high" };
+  const pairNinesLow = { category: 1, score: [1, 9], name: "Pair of 9s" };
+  assert.equal(engine.describeLowHand(aceTenLow), "Ace-Ten high");
+  assert.equal(engine.describeLowHand(pairNinesLow), "Pair of Nines");
+
   const aceHighDealerCards = cards("AS KH QD 9C 7S 4H 2D");
   const aceHighDealer = engine.houseWaySet(aceHighDealerCards);
   assert(engine.dealerHasAceHighPaiGow(aceHighDealerCards), "Raw seven-card dealer hand must trigger the automatic push");
