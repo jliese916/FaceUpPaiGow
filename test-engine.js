@@ -84,6 +84,37 @@ function run() {
     seed = (seed * 1664525 + 1013904223) >>> 0;
     return seed / 0x100000000;
   };
+
+  let pushOnlyCase = null;
+  let guaranteedLossCase = null;
+  let winningCase = null;
+  for (let sample = 0; sample < 2000 && (!pushOnlyCase || !guaranteedLossCase || !winningCase); sample += 1) {
+    const deck = engine.shuffledDeck(random);
+    const sampledDealer = engine.houseWaySet(deck.slice(0, 7));
+    if (engine.dealerHasAceHighPaiGow(sampledDealer)) continue;
+    const sampledSolution = engine.findBestPlayerSet(deck.slice(7, 14), sampledDealer);
+    if (!pushOnlyCase && !sampledSolution.canWin && sampledSolution.canPush) {
+      const losingSet = sampledSolution.sets.find(set => set.result.outcome === "loss");
+      if (losingSet) pushOnlyCase = { dealer: sampledDealer, solution: sampledSolution, losingSet };
+    }
+    if (!guaranteedLossCase && !sampledSolution.canWin && !sampledSolution.canPush) {
+      guaranteedLossCase = { dealer: sampledDealer, solution: sampledSolution };
+    }
+    if (!winningCase && sampledSolution.canWin) {
+      const lesserSet = sampledSolution.sets.find(set => set.result.outcome !== "win");
+      if (lesserSet) winningCase = { dealer: sampledDealer, solution: sampledSolution, lesserSet };
+    }
+  }
+  assert(pushOnlyCase, "Expected to find a push-only test case");
+  assert(guaranteedLossCase, "Expected to find a guaranteed-loss test case");
+  assert(winningCase, "Expected to find a winning test case with a lesser legal setting");
+  assert.equal(engine.isAccurateSet(pushOnlyCase.losingSet, pushOnlyCase.dealer).accurate, false, "A loss is inaccurate when a push is available");
+  assert.equal(engine.isAccurateSet(pushOnlyCase.solution.best, pushOnlyCase.dealer).accurate, true, "A push is accurate when it is the best result");
+  guaranteedLossCase.solution.sets.forEach(set => {
+    assert.equal(engine.isAccurateSet(set, guaranteedLossCase.dealer).accurate, true, "Every legal setting is optimal on a guaranteed loss");
+  });
+  assert.equal(engine.isAccurateSet(winningCase.lesserSet, winningCase.dealer).accurate, false, "A push or loss is inaccurate when a win is available");
+
   for (let sample = 0; sample < 5000; sample += 1) {
     const deck = engine.shuffledDeck(random);
     const sampledDealer = engine.houseWaySet(deck.slice(0, 7));

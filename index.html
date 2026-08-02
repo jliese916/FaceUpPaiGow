@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" href="./favicon-64.png">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=8">
+  <link rel="stylesheet" href="./styles.css?v=10">
 </head>
 <body>
   <main class="app">
@@ -55,7 +55,7 @@
         </div>
         <div class="game-stage" id="playStage"></div>
         <div class="table-message" id="playMessage" aria-live="polite">Press Deal to begin.</div>
-        <div class="table-actions"><button class="secondary-button" id="playDeal" type="button">Deal</button><button class="primary-button" id="playSet" type="button" disabled>Set Top Hand</button></div>
+        <div class="table-actions"><button class="secondary-button" id="playDeal" type="button">Deal</button><button class="muck-button hidden" id="playMuck" type="button">Muck Hand</button><button class="primary-button hidden" id="playSet" type="button" disabled>Set Top Hand</button></div>
       </div>
       <section class="balance-card">
         <div class="balance-heading"><span>Bankroll history</span><small id="playChartSummary">0 completed hands</small></div>
@@ -64,24 +64,24 @@
         <canvas class="balance-chart" id="playBalanceChart" role="img" aria-label="Line chart comparing your bankroll with optimal play using the same hands"></canvas>
       </section>
       <section class="session-hub">
-        <div class="session-heading"><div><strong>Session review</strong><small>Accuracy only drops when a winning set existed and you missed it.</small></div><button class="danger-link" id="resetPlay" type="button">Reset session</button></div>
+        <div class="session-heading"><strong>Session review</strong><button class="danger-link" id="resetPlay" type="button">Reset session</button></div>
         <div class="session-stats">
           <div><small>Hands</small><strong id="completedHands">0</strong></div>
           <div><small>Wins</small><strong id="playWins">0</strong></div>
           <div><small>Pushes</small><strong id="playPushes">0</strong></div>
           <div><small>Losses</small><strong id="playLosses">0</strong></div>
         </div>
-        <details class="mistake-review"><summary id="mistakeSummary">Review missed winning sets (0)</summary><div class="mistake-list" id="mistakeList"></div></details>
+        <details class="mistake-review"><summary id="mistakeSummary">Review missed best results (0)</summary><div class="mistake-list" id="mistakeList"></div></details>
       </section>
     </section>
 
     <section class="mode-panel hidden" id="trainPanel">
       <div class="pai-table train-table">
-        <div class="table-wordmark"><span>TRAINING ROOM</span><small>FIND ANY SET THAT BEATS THE DEALER</small></div>
-        <div class="train-score"><div><small>Hands</small><strong id="trainScore">0 / 0</strong></div><div><small>Accuracy</small><strong id="trainAccuracy">0.0%</strong></div></div>
+        <div class="table-wordmark"><span>TRAINING ROOM</span></div>
+        <div class="train-score"><div><small>Hands</small><strong id="trainScore">0 / 0</strong></div><div><small>Accuracy</small><span class="accuracy-line"><strong id="trainAccuracy">0.0%</strong><span class="decision-indicator" id="trainIndicator" aria-hidden="true"></span></span></div></div>
         <div class="game-stage" id="trainStage"></div>
-        <div class="table-message" id="trainMessage" aria-live="polite">Select exactly two cards for the top hand.</div>
-        <div class="table-actions"><button class="secondary-button" id="trainNext" type="button">New Hand</button><button class="primary-button" id="trainSet" type="button" disabled>Set Top Hand</button></div>
+        <div class="table-message" id="trainMessage" aria-live="polite"></div>
+        <div class="table-actions"><button class="secondary-button hidden" id="trainNext" type="button">New Hand</button><button class="muck-button" id="trainMuck" type="button">Muck Hand</button><button class="primary-button" id="trainSet" type="button" disabled>Set Top Hand</button></div>
       </div>
       <button class="text-link" id="resetTrain" type="button">Reset training score</button>
     </section>
@@ -133,7 +133,7 @@
 
     <footer><a class="footer-link" href="https://jliese916.github.io/"><img src="./jefe-crest.svg" alt="">Return to Casa del Jefe</a></footer>
   </main>
-  <script src="./pai-gow-engine.js?v=8"></script>
-  <script defer src="./app.js?v=8"></script>
+  <script src="./pai-gow-engine.js?v=10"></script>
+  <script defer src="./app.js?v=10"></script>
 </body>
 </html>

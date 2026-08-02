@@ -394,7 +394,7 @@
   function isAccurateSet(playerSet, dealerSet) {
     const solution = findBestPlayerSet([...playerSet.highCards, ...playerSet.lowCards], dealerSet);
     const result = compareSets(playerSet, dealerSet);
-    return { accurate: !solution.canWin || result.outcome === "win", result, solution };
+    return { accurate: result.outcome === solution.best.result.outcome, result, solution };
   }
 
   const api = {

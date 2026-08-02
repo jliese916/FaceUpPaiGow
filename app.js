@@ -28,6 +28,7 @@
     playStage: $("#playStage"),
     playMessage: $("#playMessage"),
     playSet: $("#playSet"),
+    playMuck: $("#playMuck"),
     playDeal: $("#playDeal"),
     playBalance: $("#playBalance"),
     playAccuracy: $("#playAccuracy"),
@@ -45,9 +46,11 @@
     trainStage: $("#trainStage"),
     trainMessage: $("#trainMessage"),
     trainSet: $("#trainSet"),
+    trainMuck: $("#trainMuck"),
     trainNext: $("#trainNext"),
     trainScore: $("#trainScore"),
     trainAccuracy: $("#trainAccuracy"),
+    trainIndicator: $("#trainIndicator"),
     resetTrain: $("#resetTrain"),
     lookupDealer: $("#lookupDealer"),
     lookupPlayer: $("#lookupPlayer"),
@@ -151,6 +154,14 @@
     return outcome === "win" ? 1 : outcome === "loss" ? -1 : 0;
   }
 
+  function bestOutcome(analysis) {
+    return analysis.best.result.outcome;
+  }
+
+  function outcomeLabel(outcome) {
+    return outcome === "win" ? "Win" : outcome === "push" ? "Push" : "Loss";
+  }
+
   function deltaLabel(value) {
     if (value === 0) return "0 units";
     return `${value > 0 ? "+" : "−"}${Math.abs(value)} ${Math.abs(value) === 1 ? "unit" : "units"}`;
@@ -209,10 +220,11 @@
       analysis: null,
       result: null,
       accurate: null,
+      mucked: false,
       justDealt: true,
       message: automaticPush
         ? "Dealer Ace-high Pai Gow — every player hand automatically pushes. No setting is needed."
-        : "Select exactly two cards for your top hand.",
+        : "Select two cards for the Player Low Hand, or muck with zero or one selected.",
       messageClass: automaticPush ? "correct" : ""
     };
   }
@@ -230,13 +242,13 @@
     wrap.className = owner === "dealer" ? "dealer-layout" : "player-set-layout";
     const highLabel = document.createElement("div");
     highLabel.className = "split-label";
-    highLabel.textContent = `${owner === "dealer" ? "Dealer" : "Player"} · 5-Card High · ${set.high.name}`;
+    highLabel.textContent = `${owner === "dealer" ? "Dealer" : "Player"} High Hand`;
     const high = document.createElement("div");
     high.className = owner === "dealer" ? "dealer-high" : "set-row";
     renderCardRow(high, set.highCards, "", animated);
     const lowLabel = document.createElement("div");
     lowLabel.className = "split-label";
-    lowLabel.textContent = `${owner === "dealer" ? "Dealer" : "Player"} · 2-Card Low · ${set.low.name}`;
+    lowLabel.textContent = `${owner === "dealer" ? "Dealer" : "Player"} Low Hand`;
     const low = document.createElement("div");
     low.className = owner === "dealer" ? "dealer-low" : "set-row";
     renderCardRow(low, set.lowCards, "", animated);
@@ -246,61 +258,82 @@
   }
 
   function comparisonText(value) {
-    return value > 0 ? "Player wins" : "Dealer wins";
+    if (value > 0) return "Player wins";
+    if (value === 0) return "Dealer wins the tie";
+    return "Dealer wins";
   }
 
-  function resultBanner(round) {
+  function resultDisclosure(round) {
     const result = round.result;
-    const wrap = document.createElement("div");
-    const banner = document.createElement("div");
-    banner.className = `set-result-banner ${result.outcome}`;
-    banner.textContent = result.outcome === "win" ? "✓ Player Wins" : result.outcome === "push" ? "— Push" : "× Dealer Wins";
-    const detail = document.createElement("p");
-    detail.className = "set-result-detail";
-    if (result.aceHighPush) detail.textContent = "Dealer Ace-high Pai Gow: every player hand automatically pushes.";
-    else if (round.accurate) detail.textContent = round.analysis.canWin ? "You found a winning set." : "No legal winning set existed, so this legal setting is accurate.";
-    else detail.textContent = "A winning set was available. This setting costs an accuracy point.";
-    const pills = document.createElement("div");
-    pills.className = "comparison-pills";
-    const high = document.createElement("span");
-    high.className = `comparison-pill ${result.highComparison > 0 ? "beat" : "lost"}`;
-    high.textContent = `High: ${comparisonText(result.highComparison)}`;
-    const low = document.createElement("span");
-    low.className = `comparison-pill ${result.lowComparison > 0 ? "beat" : "lost"}`;
-    low.textContent = `Low: ${comparisonText(result.lowComparison)}`;
-    pills.append(high, low);
-    wrap.append(banner, detail, pills);
-    return wrap;
+    const disclosure = document.createElement("details");
+    disclosure.className = "result-disclosure";
+    const summary = document.createElement("summary");
+    summary.className = `set-result-banner ${result.outcome}`;
+    summary.textContent = result.outcome === "win" ? "Player Wins" : result.outcome === "push" ? "Push" : "Dealer Wins";
+    const panel = document.createElement("div");
+    panel.className = "result-detail-panel";
+
+    const detailRow = (label, text, className = "") => {
+      const row = document.createElement("div");
+      row.className = `result-detail-row${className ? ` ${className}` : ""}`;
+      const term = document.createElement("span");
+      term.textContent = label;
+      const value = document.createElement("strong");
+      value.textContent = text;
+      row.append(term, value);
+      return row;
+    };
+
+    if (round.mucked) {
+      panel.append(
+        detailRow("Player decision", "Hand mucked"),
+        detailRow("High hand", "Not compared — hand mucked"),
+        detailRow("Low hand", "Not compared — hand mucked"),
+        detailRow("Net result", formatUnits(-1, true), "net-result")
+      );
+    } else {
+      panel.append(
+        detailRow("High hand", `${round.playerSet.high.name} vs. ${round.dealerSet.high.name} — ${comparisonText(result.highComparison)}`),
+        detailRow("Low hand", `${round.playerSet.low.name} vs. ${round.dealerSet.low.name} — ${comparisonText(result.lowComparison)}`),
+        detailRow("Net result", formatUnits(resultUnits(result.outcome), true), "net-result")
+      );
+    }
+    disclosure.append(summary, panel);
+    return disclosure;
   }
 
   function automaticPushBanner() {
-    const wrap = document.createElement("div");
-    wrap.className = "automatic-push-result";
-    const banner = document.createElement("div");
-    banner.className = "set-result-banner push";
-    banner.textContent = "— Automatic Push";
-    const detail = document.createElement("p");
-    detail.className = "set-result-detail";
-    detail.textContent = "The dealer has Ace-high Pai Gow, so every player hand pushes and no setting is needed.";
-    wrap.append(banner, detail);
-    return wrap;
+    const disclosure = document.createElement("details");
+    disclosure.className = "result-disclosure automatic-push-result";
+    const summary = document.createElement("summary");
+    summary.className = "set-result-banner push";
+    summary.textContent = "Automatic Push";
+    const panel = document.createElement("div");
+    panel.className = "result-detail-panel";
+    panel.innerHTML = `<div class="result-detail-row"><span>Reason</span><strong>Dealer Ace-high Pai Gow</strong></div><div class="result-detail-row net-result"><span>Net result</span><strong>0 units</strong></div>`;
+    disclosure.append(summary, panel);
+    return disclosure;
   }
 
   function emptyStage(container) {
     container.replaceChildren();
     const dealer = document.createElement("div");
     dealer.className = "hand-zone";
-    dealer.innerHTML = `<div class="zone-label">Dealer Hand</div>`;
+    const highLabel = document.createElement("div");
+    highLabel.className = "split-label";
+    highLabel.textContent = "Dealer High Hand";
     const high = document.createElement("div");
     high.className = "dealer-high";
     for (let i = 0; i < 5; i += 1) high.append(cardElement(null, { placeholder: true }));
+    const lowLabel = document.createElement("div");
+    lowLabel.className = "split-label";
+    lowLabel.textContent = "Dealer Low Hand";
     const low = document.createElement("div");
     low.className = "dealer-low";
     for (let i = 0; i < 2; i += 1) low.append(cardElement(null, { placeholder: true }));
-    dealer.append(high, low);
+    dealer.append(highLabel, high, lowLabel, low);
     const player = document.createElement("div");
     player.className = "hand-zone player-zone";
-    player.innerHTML = `<div class="zone-label">Your 7 Cards</div>`;
     const fan = document.createElement("div");
     fan.className = "player-fan";
     for (let i = 0; i < 7; i += 1) {
@@ -321,19 +354,10 @@
     const dealerZone = document.createElement("div");
     dealerZone.className = "hand-zone";
     dealerZone.append(makeSetLayout(round.dealerSet, "dealer", round.justDealt));
-    const houseRule = document.createElement("div");
-    houseRule.className = "house-rule";
-    houseRule.textContent = `House way: ${round.dealerSet.houseRule}`;
-    dealerZone.append(houseRule);
 
     const playerZone = document.createElement("div");
     playerZone.className = "hand-zone player-zone";
-    const label = document.createElement("div");
-    label.className = "zone-label";
-    label.textContent = round.completed ? "Your Set Hand" : "Your 7 Cards";
-    playerZone.append(label);
     if (round.automaticPush) {
-      label.textContent = "Your 7 Cards · No Setting Needed";
       const fan = document.createElement("div");
       fan.className = `player-fan${round.justDealt ? " animate" : ""}`;
       E.sortCards(round.playerCards).forEach((card, index) => {
@@ -343,12 +367,23 @@
       });
       playerZone.append(fan, automaticPushBanner());
     } else if (round.completed) {
-      playerZone.append(makeSetLayout(round.playerSet, "player"));
-      playerZone.append(resultBanner(round));
+      if (round.mucked) {
+        const fan = document.createElement("div");
+        fan.className = "player-fan";
+        E.sortCards(round.playerCards).forEach((card, index) => {
+          const node = cardElement(card, { className: "fan-card", index });
+          node.style.setProperty("--angle", `${FAN_ANGLES[index]}deg`);
+          fan.append(node);
+        });
+        playerZone.append(fan);
+      } else {
+        playerZone.append(makeSetLayout(round.playerSet, "player"));
+      }
+      playerZone.append(resultDisclosure(round));
     } else {
       const instruction = document.createElement("div");
       instruction.className = "player-instruction";
-      instruction.textContent = `${round.selected.length} of 2 top cards selected`;
+      instruction.textContent = `Player Low Hand · ${round.selected.length} of 2 selected`;
       const fan = document.createElement("div");
       fan.className = `player-fan${round.justDealt ? " animate" : ""}`;
       E.sortCards(round.playerCards).forEach((card, index) => {
@@ -372,9 +407,9 @@
   }
 
   function controlsFor(mode) {
-    if (mode === "play") return { set: el.playSet, next: el.playDeal, message: el.playMessage, stage: el.playStage };
-    if (mode === "train") return { set: el.trainSet, next: el.trainNext, message: el.trainMessage, stage: el.trainStage };
-    return { set: el.challengeSet, next: el.challengeNext, message: el.challengeMessage, stage: el.challengeStage };
+    if (mode === "play") return { set: el.playSet, muck: el.playMuck, next: el.playDeal, message: el.playMessage, stage: el.playStage };
+    if (mode === "train") return { set: el.trainSet, muck: el.trainMuck, next: el.trainNext, message: el.trainMessage, stage: el.trainStage };
+    return { set: el.challengeSet, muck: null, next: el.challengeNext, message: el.challengeMessage, stage: el.challengeStage };
   }
 
   function toggleCard(mode, id) {
@@ -388,11 +423,15 @@
     const index = round.selected.indexOf(id);
     if (index >= 0) {
       round.selected.splice(index, 1);
-      round.message = "Select exactly two cards for your top hand.";
+      round.message = round.selected.length
+        ? "Select one more card for the Player Low Hand, or muck now."
+        : "Select two cards for the Player Low Hand, or muck with zero or one selected.";
       round.messageClass = "";
     } else if (round.selected.length < 2) {
       round.selected.push(id);
-      round.message = round.selected.length === 2 ? "Two cards selected. Set the top hand when ready." : "Select one more card for your top hand.";
+      round.message = round.selected.length === 2
+        ? "Player Low Hand selected. Set the hand when ready."
+        : "Select one more card for the Player Low Hand, or muck now.";
       round.messageClass = "";
     }
     else {
@@ -410,9 +449,11 @@
     return {
       number,
       dealer: setSnapshot(round.dealerSet),
-      chosen: setSnapshot(round.playerSet),
-      winning: setSnapshot(round.analysis.best),
-      outcome: round.result.outcome
+      chosen: round.playerSet ? setSnapshot(round.playerSet) : null,
+      optimal: setSnapshot(round.analysis.best),
+      outcome: round.result.outcome,
+      optimalOutcome: bestOutcome(round.analysis),
+      mucked: round.mucked
     };
   }
 
@@ -440,16 +481,36 @@
     round.playerSet = playerSet;
     round.analysis = E.findBestPlayerSet(round.playerCards, round.dealerSet);
     round.result = E.compareSets(playerSet, round.dealerSet);
-    round.accurate = !round.analysis.canWin || round.result.outcome === "win";
+    round.accurate = round.result.outcome === bestOutcome(round.analysis);
     round.completed = true;
     round.messageClass = round.accurate ? "correct" : "incorrect";
-    round.message = round.accurate
-      ? (round.analysis.canWin ? "Correct — this legal set beats both dealer hands." : "Accurate — no winning set existed, and you made a legal hand.")
-      : `Missed opportunity — a winning set was available, but this setting ${round.result.outcome === "push" ? "pushes" : "loses"}.`;
+    round.message = "";
 
     if (mode === "play") completePlayRound(round);
     else if (mode === "train") completeTrainRound(round);
     else completeChallengeRound(round);
+    renderRound(mode);
+  }
+
+  function muckHand(mode) {
+    if (mode !== "play" && mode !== "train") return;
+    const round = roundFor(mode);
+    if (!round || round.completed || round.selected.length > 1) return;
+    if (E.dealerHasAceHighPaiGow(round.dealerCards)) {
+      settleAutomaticPush(mode, round);
+      renderRound(mode);
+      return;
+    }
+    round.analysis = E.findBestPlayerSet(round.playerCards, round.dealerSet);
+    round.playerSet = null;
+    round.result = { outcome: "loss", highComparison: null, lowComparison: null, mucked: true };
+    round.accurate = bestOutcome(round.analysis) === "loss";
+    round.mucked = true;
+    round.completed = true;
+    round.message = "";
+    round.messageClass = round.accurate ? "correct" : "incorrect";
+    if (mode === "play") completePlayRound(round);
+    else completeTrainRound(round);
     renderRound(mode);
   }
 
@@ -470,12 +531,13 @@
     if (!round.accurate) p.mistakes.push(mistakeSnapshot(round, p.hands));
     if (p.mistakes.length > 25) p.mistakes.shift();
     savePlay();
-    pulseIndicator(round.accurate);
+    pulseIndicator("play", round.accurate);
   }
 
   function completeTrainRound(round) {
     state.train.total += 1;
     if (round.accurate) state.train.correct += 1;
+    pulseIndicator("train", round.accurate);
   }
 
   function completeChallengeRound(round) {
@@ -495,11 +557,12 @@
     settleAutomaticPush("challenge", challenge.round);
   }
 
-  function pulseIndicator(correct) {
-    el.playIndicator.textContent = correct ? "✓" : "×";
-    el.playIndicator.className = `decision-indicator visible ${correct ? "correct" : "incorrect"}`;
-    void el.playIndicator.offsetWidth;
-    el.playIndicator.classList.add("pulse");
+  function pulseIndicator(mode, correct) {
+    const indicator = mode === "train" ? el.trainIndicator : el.playIndicator;
+    indicator.textContent = correct ? "+" : "−";
+    indicator.className = `decision-indicator visible ${correct ? "correct" : "incorrect"}`;
+    void indicator.offsetWidth;
+    indicator.classList.add("pulse");
   }
 
   function settleAutomaticPush(mode, round) {
@@ -532,15 +595,23 @@
     renderStage(controls.stage, round, mode);
     controls.message.textContent = round ? round.message : (mode === "play" ? "Press Deal to begin." : "Select exactly two cards for the top hand.");
     controls.message.className = `table-message${round && round.messageClass ? ` ${round.messageClass}` : ""}`;
-    controls.set.disabled = !round || round.completed || round.selected.length !== 2;
+    const activeRound = Boolean(round && !round.completed && !round.automaticPush);
+    const canSet = activeRound && round.selected.length === 2;
+    const canMuck = activeRound && round.selected.length <= 1;
+    controls.set.disabled = !canSet;
     controls.next.disabled = Boolean(round && !round.completed);
     if (mode === "play") {
       controls.next.textContent = round && round.completed ? "Deal Again" : "Deal";
-      controls.set.classList.toggle("hidden", !round || round.completed);
+      controls.muck.disabled = !canMuck;
+      controls.muck.classList.toggle("hidden", !canMuck);
+      controls.set.classList.toggle("hidden", !canSet);
       controls.next.classList.toggle("hidden", Boolean(round && !round.completed));
     }
     if (mode === "train") {
-      controls.set.classList.toggle("hidden", Boolean(round && round.automaticPush));
+      controls.next.classList.toggle("hidden", !round || !round.completed);
+      controls.muck.disabled = !canMuck;
+      controls.muck.classList.toggle("hidden", !canMuck);
+      controls.set.classList.toggle("hidden", !canSet);
     }
     if (mode === "challenge") {
       controls.set.classList.toggle("hidden", Boolean(round && round.automaticPush));
@@ -573,17 +644,23 @@
   }
 
   function renderMiniSet(snapshot) {
+    if (!snapshot) return `<div class="mucked-mini-set">Hand mucked</div>`;
     return `<div class="mini-set"><div><div class="mini-hand">${snapshot.high.map(miniCardMarkup).join("")}</div><div class="mini-hand">${snapshot.low.map(miniCardMarkup).join("")}</div></div><small>${snapshot.highName}<br>${snapshot.lowName}</small></div>`;
   }
 
   function renderMistakes() {
     const mistakes = state.play.mistakes;
-    el.mistakeSummary.textContent = `Review missed winning sets (${mistakes.length})`;
+    el.mistakeSummary.textContent = `Review missed best results (${mistakes.length})`;
     if (!mistakes.length) {
-      el.mistakeList.innerHTML = `<p class="set-result-detail">No missed winning sets in this session.</p>`;
+      el.mistakeList.innerHTML = `<p class="set-result-detail">No missed best results in this session.</p>`;
       return;
     }
-    el.mistakeList.innerHTML = mistakes.slice().reverse().map(mistake => `<article class="mistake-card"><h3>Hand ${mistake.number}: chose a ${mistake.outcome}</h3><p>Your setting</p>${renderMiniSet(mistake.chosen)}<p>One winning setting</p>${renderMiniSet(mistake.winning)}</article>`).join("");
+    el.mistakeList.innerHTML = mistakes.slice().reverse().map(mistake => {
+      const optimal = mistake.optimal || mistake.winning;
+      const optimalOutcome = mistake.optimalOutcome || "win";
+      const decision = mistake.mucked ? "mucked the hand" : `played for a ${mistake.outcome}`;
+      return `<article class="mistake-card"><h3>Hand ${mistake.number}: ${decision}; a ${optimalOutcome} was available</h3><p>Your play</p>${renderMiniSet(mistake.chosen)}<p>One best-result setting · ${outcomeLabel(optimalOutcome)}</p>${renderMiniSet(optimal)}</article>`;
+    }).join("");
   }
 
   function drawBalanceChart() {
@@ -726,6 +803,7 @@
 
   function resetTrain() {
     state.train = { total: 0, correct: 0, round: newRound() };
+    el.trainIndicator.className = "decision-indicator";
     renderRound("train");
   }
 
@@ -940,9 +1018,9 @@
           <p>${today}</p>
           <div class="certificate-share">Screenshot this Grand Master certificate and send it to the group text thread.</div>
         </div>`
-      : `<div class="challenge-fail"><h2>Not Quite Grand Master</h2><div class="challenge-final-score">${challenge.correct} / ${CHALLENGE_HANDS} · ${percent(challenge.correct, CHALLENGE_HANDS)}</div><p>Grand Master certification requires a perfect 100 out of 100. You missed ${challenge.misses.length} ${challenge.misses.length === 1 ? "winning set" : "winning sets"}.</p><p>Visit Train mode, sharpen the eye, and make El Jefe proud.</p></div>`;
+      : `<div class="challenge-fail"><h2>Not Quite Grand Master</h2><div class="challenge-final-score">${challenge.correct} / ${CHALLENGE_HANDS} · ${percent(challenge.correct, CHALLENGE_HANDS)}</div><p>Grand Master certification requires a perfect 100 out of 100. You missed the best available result on ${challenge.misses.length} ${challenge.misses.length === 1 ? "hand" : "hands"}.</p><p>Visit Train mode, sharpen the eye, and make El Jefe proud.</p></div>`;
     const review = challenge.misses.length
-      ? `<details class="challenge-review"><summary>Review missed winning sets (${challenge.misses.length})</summary><div class="mistake-list">${challenge.misses.map(miss => `<article class="mistake-card"><h3>Hand ${miss.number}: chose a ${miss.outcome}</h3><p>Your setting</p>${renderMiniSet(miss.chosen)}<p>One winning setting</p>${renderMiniSet(miss.winning)}</article>`).join("")}</div></details>`
+      ? `<details class="challenge-review"><summary>Review missed best results (${challenge.misses.length})</summary><div class="mistake-list">${challenge.misses.map(miss => `<article class="mistake-card"><h3>Hand ${miss.number}: played for a ${miss.outcome}; a ${miss.optimalOutcome} was available</h3><p>Your play</p>${renderMiniSet(miss.chosen)}<p>One best-result setting · ${outcomeLabel(miss.optimalOutcome)}</p>${renderMiniSet(miss.optimal)}</article>`).join("")}</div></details>`
       : "";
     el.challengeSummary.innerHTML = `${result}<div class="challenge-summary-actions"><button class="primary-button" id="challengeAgain" type="button">Try Again</button><button class="secondary-button" id="challengeDone" type="button">Done</button></div>${review}`;
     $("#challengeAgain").addEventListener("click", startChallenge);
@@ -960,8 +1038,10 @@
   setupPickers();
   el.tabs.forEach(tab => tab.addEventListener("click", () => setMode(tab.dataset.mode)));
   el.playDeal.addEventListener("click", () => startRound("play"));
+  el.playMuck.addEventListener("click", () => muckHand("play"));
   el.playSet.addEventListener("click", () => submitSet("play"));
   el.trainNext.addEventListener("click", () => startRound("train"));
+  el.trainMuck.addEventListener("click", () => muckHand("train"));
   el.trainSet.addEventListener("click", () => submitSet("train"));
   el.resetPlay.addEventListener("click", resetPlay);
   el.resetTrain.addEventListener("click", resetTrain);
@@ -994,6 +1074,6 @@
       refreshing = true;
       window.location.reload();
     });
-    window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js?v=8", { updateViaCache: "none" }).then(registration => registration.update()).catch(() => {}));
+    window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js?v=10", { updateViaCache: "none" }).then(registration => registration.update()).catch(() => {}));
   }
 })();

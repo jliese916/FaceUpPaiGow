@@ -57,3 +57,14 @@ node test-engine.js
 - Adds the purple-and-gold radial background, animated rays, suit insignia, crown crest, and enhanced score panel.
 - Retains the Face Up Pai Gow title, perfect hand-setting designation, and challenge date.
 
+
+## v8 muck and best-result accuracy update
+
+- Adds **Muck Hand** to Play and Train. It is available with zero or one selected card and switches to **Set Top Hand** after the second card is selected.
+- Scores decisions against the best achievable outcome: win first, then push, then loss.
+- Marks a losing set or muck as inaccurate when a push was available.
+- Treats every legal set, plus mucking, as optimal when the player is guaranteed to lose.
+- Replaces check/X accuracy markers with plus/minus markers in Play and Train.
+- Condenses the table labels and removes the dealer house-way explanation and "Your Set Hand" heading.
+- Keeps only the round result visible after play; high-hand, low-hand, and net-result comparisons are inside a collapsed disclosure panel.
+- Updates session and challenge reviews to include missed pushes as missed best results.
