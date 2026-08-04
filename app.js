@@ -6,7 +6,7 @@
 
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
-  const APP_VERSION = "18";
+  const APP_VERSION = "19";
   const STORAGE_KEY = "casaFaceUpPaiGowPlayV1";
   const CHALLENGE_HANDS = 100;
   const SUIT_CLASSES = ["suit-hearts", "suit-diamonds", "suit-clubs", "suit-spades"];

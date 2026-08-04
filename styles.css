@@ -146,8 +146,8 @@ button.card { cursor: pointer; }
 .fan-card { --angle: 0deg; --lift: 0px; position: relative; width: 72px; height: 104px; margin-left: -20px; transform: translateY(var(--lift)) rotate(var(--angle)); transform-origin: 50% 145%; transition: transform .15s ease, filter .15s ease, border-color .15s ease; z-index: var(--i); }
 .fan-card:first-child { margin-left: 0; }
 .fan-card:hover { filter: brightness(1.03); }
-.fan-card .card-rank { font-size: 3rem; }
-.fan-card .card-suit { font-size: 1.3rem; }
+.fan-card .card-rank { font-size: 2.35rem; }
+.fan-card .card-suit { font-size: .98rem; }
 .lookup-slot .card-rank { font-size: 2.05rem; }
 .lookup-slot .card-suit { font-size: .78rem; }
 .fan-card.selected { --lift: -18px; border-color: #ffe184; box-shadow: 0 0 0 3px rgba(255,225,132,.2), 0 13px 18px rgba(0,0,0,.34); z-index: 20; }
@@ -356,9 +356,16 @@ footer { margin-top: 18px; text-align: center; }
   .dealer-high .card, .dealer-low .card, .player-set-layout .card { width: 48px; height: 70px; border-radius: 8px; }
   .dealer-high .card-rank, .dealer-low .card-rank, .player-set-layout .card-rank { font-size: 1.95rem; }
   .dealer-high .card-suit, .dealer-low .card-suit, .player-set-layout .card-suit { font-size: .78rem; }
-  .fan-card { width: 61px; height: 90px; margin-left: -22px; }
-  .fan-card .card-rank { font-size: 2.65rem; }
-  .fan-card .card-suit { font-size: 1.08rem; }
+  .fan-card { width: 61px; height: 90px; margin-left: -23px; transform-origin: 50% 138%; }
+  .fan-card:nth-child(1) { --angle: -24deg !important; }
+  .fan-card:nth-child(2) { --angle: -16deg !important; }
+  .fan-card:nth-child(3) { --angle: -8deg !important; }
+  .fan-card:nth-child(4) { --angle: 0deg !important; }
+  .fan-card:nth-child(5) { --angle: 8deg !important; }
+  .fan-card:nth-child(6) { --angle: 16deg !important; }
+  .fan-card:nth-child(7) { --angle: 24deg !important; }
+  .fan-card .card-rank { font-size: 1.95rem; }
+  .fan-card .card-suit { font-size: .78rem; }
   .player-fan { min-height: 127px; padding-inline: 7px; }
   .table-message { font-size: .86rem; }
   .primary-button, .secondary-button, .muck-button { min-width: 128px; padding-inline: 9px; }
@@ -376,8 +383,16 @@ footer { margin-top: 18px; text-align: center; }
   .play-topline { gap: 3px; padding-inline: 5px; }
   .play-topline small { font-size: .55rem; }
   .play-topline strong { font-size: .78rem; }
-  .fan-card { width: 56px; height: 83px; margin-left: -21px; }
-  .fan-card .card-rank { font-size: 2.35rem; }
+  .fan-card { width: 56px; height: 83px; margin-left: -22px; transform-origin: 50% 135%; }
+  .fan-card:nth-child(1) { --angle: -21deg !important; }
+  .fan-card:nth-child(2) { --angle: -14deg !important; }
+  .fan-card:nth-child(3) { --angle: -7deg !important; }
+  .fan-card:nth-child(4) { --angle: 0deg !important; }
+  .fan-card:nth-child(5) { --angle: 7deg !important; }
+  .fan-card:nth-child(6) { --angle: 14deg !important; }
+  .fan-card:nth-child(7) { --angle: 21deg !important; }
+  .fan-card .card-rank { font-size: 1.95rem; }
+  .fan-card .card-suit { font-size: .78rem; }
   .rank-picker { grid-template-columns: repeat(5, 1fr); }
   .lookup-slot { width: 44px; height: 65px; }
   .table-actions { gap: 6px; }
