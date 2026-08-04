@@ -70,3 +70,19 @@ node test-engine.js
 - Updates session and challenge reviews to include missed pushes as missed best results.
 
 - Result details name the specific high hands and show only the kickers needed to explain the comparison.
+
+
+## v10 challenge muck and strategy cleanup
+
+- Mucked-hand result details still identify the dealer's high and low hands before noting that the player mucked.
+- Adds **Muck Hand** to the El Jefe Challenge with the same best-outcome accuracy rules used in Play and Train.
+- Keeps all Challenge results sealed until the final summary, including muck decisions.
+- Combines the overlapping strategy steps into a cleaner three-step sequence.
+
+
+## v10 adaptive Look Up controls
+
+- Places **Joker** beside the standard rank buttons; selecting it fills the active slot immediately without requiring a suit.
+- Allows a complete dealer hand to be evaluated by itself with **Find House Way**.
+- Changes the action to **Find Best Set** as soon as player-card entry begins, enabling it once all seven player cards are present.
+- Keeps dealer Ace-high Pai Gow handling consistent in both dealer-only and full two-hand lookups.

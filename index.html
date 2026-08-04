@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" href="./favicon-64.png">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=11">
+  <link rel="stylesheet" href="./styles.css?v=13">
 </head>
 <body>
   <main class="app">
@@ -87,20 +87,19 @@
     </section>
 
     <section class="mode-panel lookup-panel hidden" id="lookupPanel">
-      <div class="lookup-intro"><h2>Pai Gow Hand Setter</h2><p>Enter seven dealer cards and seven player cards. El Jefe will set the dealer by the house way, then find the player’s best result.</p></div>
+      <div class="lookup-intro"><h2>Pai Gow Hand Setter</h2><p>Enter a dealer hand to find the house way. Add a complete player hand to find the best set against it.</p></div>
       <div class="lookup-hands">
-        <section class="lookup-group"><div class="lookup-heading"><strong>Dealer’s 7 Cards</strong><small>Set by house way</small></div><div class="lookup-slots" id="lookupDealer"></div></section>
-        <section class="lookup-group"><div class="lookup-heading"><strong>Player’s 7 Cards</strong><small>Set to beat the dealer</small></div><div class="lookup-slots" id="lookupPlayer"></div></section>
+        <section class="lookup-group"><div class="lookup-heading"><strong>Dealer’s 7 Cards</strong><small>Required</small></div><div class="lookup-slots" id="lookupDealer"></div></section>
+        <section class="lookup-group"><div class="lookup-heading"><strong>Player’s 7 Cards</strong><small>Optional — add all seven to find the best set</small></div><div class="lookup-slots" id="lookupPlayer"></div></section>
       </div>
       <div class="picker-section">
         <div class="picker-label">Choose a rank</div>
         <div class="rank-picker" id="rankPicker"></div>
-        <div class="picker-label">Then choose a suit</div>
+        <div class="picker-label">Then choose a suit <span>(not needed for Joker)</span></div>
         <div class="suit-picker" id="suitPicker"></div>
-        <button class="joker-button" id="jokerPicker" type="button">JOKER</button>
       </div>
       <div class="lookup-controls"><button class="secondary-button import-play-button" id="importFromPlay" type="button" disabled>Import from Play</button><button class="secondary-button" id="removeLookup" type="button">Remove Selected</button><button class="secondary-button" id="clearLookup" type="button">Clear All</button></div>
-      <button class="primary-button lookup-find" id="findBestSet" type="button" disabled>Find the Best Set</button>
+      <button class="primary-button lookup-find" id="findBestSet" type="button" disabled>Find House Way</button>
       <div class="lookup-message" id="lookupMessage" aria-live="polite">Select a slot, then choose its rank and suit.</div>
       <div class="lookup-result hidden" id="lookupResult"></div>
 
@@ -110,11 +109,10 @@
           <div class="strategy-hero"><span>THE ENTIRE STRATEGY</span><strong>Beat the dealer if you can.<br>Otherwise, lose with dignity.</strong></div>
           <div class="strategy-grid">
             <article><b>1</b><h3>Look at both dealer hands</h3><p>That is the “face up” part. It would be rude not to use the information.</p></article>
-            <article><b>2</b><h3>Choose exactly two cards up top</h3><p>The remaining five form the bottom, or high, hand.</p></article>
-            <article><b>3</b><h3>Never foul the hand</h3><p>Your five-card high hand must outrank your two-card low hand.</p></article>
-            <article><b>4</b><h3>Search for a two-hand winner</h3><p>Try different two-card combinations until you find one that wins both comparisons. Some hands are obvious; others can take a minute.</p></article>
+            <article><b>2</b><h3>Find the best legal low hand</h3><p>Try different two-card combinations to win both comparisons. The remaining five cards form your high hand, which must outrank the low hand. Some hands can take a minute.</p></article>
+            <article><b>3</b><h3>Take the best available result</h3><p>If you cannot win, look for a push. If every legal split loses, any legal set—or mucking—is optimal.</p></article>
           </div>
-          <p class="strategy-note"><strong>Take your time:</strong> the winning combination is not always the first sensible split you see. Check whether another pair of top cards lets both your low hand and high hand beat the dealer. The Joker is a semi-wild bug: it acts as an Ace, or completes a straight, flush, straight flush, or royal flush. A-2-3-4-5 is the second-highest straight.</p>
+          <p class="strategy-note"><strong>Joker note:</strong> the Joker is a semi-wild bug. It acts as an Ace, or completes a straight, flush, straight flush, or royal flush. A-2-3-4-5 is the second-highest straight.</p>
         </div>
       </details>
     </section>
@@ -124,8 +122,8 @@
       <div id="challengeGame">
         <div class="pai-table challenge-table">
           <div class="game-stage" id="challengeStage"></div>
-          <div class="table-message" id="challengeMessage" aria-live="polite">Set each hand carefully. Results stay sealed until the challenge is complete.</div>
-          <div class="table-actions"><button class="secondary-button hidden" id="challengeNext" type="button" aria-hidden="true" tabindex="-1">Next Hand</button><button class="primary-button" id="challengeSet" type="button" disabled>Set Top Hand</button></div>
+          <div class="table-message" id="challengeMessage" aria-live="polite">Select two cards for the player low hand, or muck.</div>
+          <div class="table-actions"><button class="secondary-button hidden" id="challengeNext" type="button" aria-hidden="true" tabindex="-1">Next Hand</button><button class="muck-button" id="challengeMuck" type="button">Muck Hand</button><button class="primary-button hidden" id="challengeSet" type="button" disabled>Set Top Hand</button></div>
         </div>
       </div>
       <div class="challenge-summary hidden" id="challengeSummary"></div>
@@ -133,7 +131,7 @@
 
     <footer><a class="footer-link" href="https://jliese916.github.io/"><img src="./jefe-crest.svg" alt="">Return to Casa del Jefe</a></footer>
   </main>
-  <script src="./pai-gow-engine.js?v=11"></script>
-  <script defer src="./app.js?v=11"></script>
+  <script src="./pai-gow-engine.js?v=13"></script>
+  <script defer src="./app.js?v=13"></script>
 </body>
 </html>

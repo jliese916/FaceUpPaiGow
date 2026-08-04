@@ -24,6 +24,7 @@
     challengeStage: $("#challengeStage"),
     challengeMessage: $("#challengeMessage"),
     challengeSet: $("#challengeSet"),
+    challengeMuck: $("#challengeMuck"),
     challengeNext: $("#challengeNext"),
     challengeExit: $("#challengeExit"),
     playStage: $("#playStage"),
@@ -57,7 +58,6 @@
     lookupPlayer: $("#lookupPlayer"),
     rankPicker: $("#rankPicker"),
     suitPicker: $("#suitPicker"),
-    jokerPicker: $("#jokerPicker"),
     importFromPlay: $("#importFromPlay"),
     removeLookup: $("#removeLookup"),
     clearLookup: $("#clearLookup"),
@@ -287,9 +287,9 @@
 
     if (round.mucked) {
       panel.append(
-        detailRow("Player decision", "Hand mucked"),
-        detailRow("High hand", "Not compared — hand mucked"),
-        detailRow("Low hand", "Not compared — hand mucked"),
+        detailRow("Dealer high hand", E.describeHighForComparison(round.dealerSet.high, null)),
+        detailRow("Dealer low hand", E.describeLowHand(round.dealerSet.low)),
+        detailRow("Player hand", "Mucked"),
         detailRow("Net result", formatUnits(-1, true), "net-result")
       );
     } else {
@@ -407,7 +407,7 @@
   function controlsFor(mode) {
     if (mode === "play") return { set: el.playSet, muck: el.playMuck, next: el.playDeal, message: el.playMessage, stage: el.playStage };
     if (mode === "train") return { set: el.trainSet, muck: el.trainMuck, next: el.trainNext, message: el.trainMessage, stage: el.trainStage };
-    return { set: el.challengeSet, muck: null, next: el.challengeNext, message: el.challengeMessage, stage: el.challengeStage };
+    return { set: el.challengeSet, muck: el.challengeMuck, next: el.challengeNext, message: el.challengeMessage, stage: el.challengeStage };
   }
 
   function toggleCard(mode, id) {
@@ -421,11 +421,11 @@
     const index = round.selected.indexOf(id);
     if (index >= 0) {
       round.selected.splice(index, 1);
-      round.message = mode === "challenge" ? "Select two cards for the player low hand." : SETTING_PROMPT;
+      round.message = SETTING_PROMPT;
       round.messageClass = "";
     } else if (round.selected.length < 2) {
       round.selected.push(id);
-      round.message = mode === "challenge" ? "Select two cards for the player low hand." : SETTING_PROMPT;
+      round.message = SETTING_PROMPT;
       round.messageClass = "";
     }
     else {
@@ -487,7 +487,7 @@
   }
 
   function muckHand(mode) {
-    if (mode !== "play" && mode !== "train") return;
+    if (mode !== "play" && mode !== "train" && mode !== "challenge") return;
     const round = roundFor(mode);
     if (!round || round.completed || round.selected.length > 1) return;
     if (E.dealerHasAceHighPaiGow(round.dealerCards)) {
@@ -504,7 +504,8 @@
     round.message = "";
     round.messageClass = round.accurate ? "correct" : "incorrect";
     if (mode === "play") completePlayRound(round);
-    else completeTrainRound(round);
+    else if (mode === "train") completeTrainRound(round);
+    else completeChallengeRound(round);
     renderRound(mode);
   }
 
@@ -548,7 +549,7 @@
     // replace the completed round before anything can reveal its result.
     challenge.number += 1;
     challenge.round = newRound();
-    if (!challenge.round.automaticPush) challenge.round.message = "Select two cards for the player low hand.";
+    if (!challenge.round.automaticPush) challenge.round.message = SETTING_PROMPT;
     settleAutomaticPush("challenge", challenge.round);
   }
 
@@ -576,7 +577,7 @@
 
   function startRound(mode) {
     const round = newRound();
-    if (mode === "challenge" && !round.automaticPush) round.message = "Select two cards for the player low hand.";
+    if (mode === "challenge" && !round.automaticPush) round.message = SETTING_PROMPT;
     if (mode === "play") state.play.round = round;
     else if (mode === "train") state.train.round = round;
     else state.challenge.round = round;
@@ -610,7 +611,9 @@
       controls.set.classList.toggle("hidden", !canSet);
     }
     if (mode === "challenge") {
-      controls.set.classList.toggle("hidden", Boolean(round && round.automaticPush));
+      controls.muck.disabled = !canMuck;
+      controls.muck.classList.toggle("hidden", !canMuck);
+      controls.set.classList.toggle("hidden", !canSet);
       controls.next.disabled = true;
       controls.next.classList.add("hidden");
       el.challengeProgress.textContent = `Hand ${state.challenge.number} of ${CHALLENGE_HANDS}`;
@@ -817,6 +820,13 @@
       });
       el.rankPicker.append(button);
     });
+    const joker = document.createElement("button");
+    joker.type = "button";
+    joker.className = "picker-button joker-rank-button";
+    joker.textContent = "Joker";
+    joker.addEventListener("click", addLookupJoker);
+    el.rankPicker.append(joker);
+
     E.SUITS.forEach((suit, index) => {
       const button = document.createElement("button");
       button.type = "button";
@@ -904,7 +914,17 @@
     renderLookupPickers();
     el.removeLookup.disabled = !state.lookup[state.lookup.activeHand][state.lookup.activeIndex];
     el.importFromPlay.disabled = !state.play.round;
-    el.findBestSet.disabled = allLookupCards().length !== 14;
+
+    const dealerCount = state.lookup.dealer.filter(Boolean).length;
+    const playerCount = state.lookup.player.filter(Boolean).length;
+    const dealerComplete = dealerCount === 7;
+    const playerStarted = playerCount > 0;
+    const playerComplete = playerCount === 7;
+    el.findBestSet.textContent = playerStarted ? "Find Best Set" : "Find House Way";
+    el.findBestSet.disabled = !dealerComplete || (playerStarted && !playerComplete);
+    el.findBestSet.setAttribute("aria-label", playerStarted
+      ? (playerComplete ? "Find the best player set" : `Find the best player set after entering ${7 - playerCount} more ${7 - playerCount === 1 ? "card" : "cards"}`)
+      : (dealerComplete ? "Find the dealer house way" : `Find the dealer house way after entering ${7 - dealerCount} more ${7 - dealerCount === 1 ? "card" : "cards"}`));
   }
 
   function removeLookupCard() {
@@ -942,14 +962,38 @@
 
   function findLookupSet() {
     try {
-      const dealerSet = E.houseWaySet(state.lookup.dealer);
-      if (E.dealerHasAceHighPaiGow(dealerSet)) {
+      const dealerCards = state.lookup.dealer.filter(Boolean);
+      const playerCards = state.lookup.player.filter(Boolean);
+      if (dealerCards.length !== 7) {
+        setLookupMessage("Enter all seven dealer cards first.", true);
+        return;
+      }
+
+      const dealerSet = E.houseWaySet(dealerCards);
+      const dealerAceHigh = E.dealerHasAceHighPaiGow(dealerCards);
+      if (playerCards.length === 0) {
+        const title = dealerAceHigh ? "Dealer Ace-high Pai Gow" : "Dealer House Way";
+        const subtitle = dealerAceHigh
+          ? "The house way is shown below. In live play, every player hand automatically pushes."
+          : "The dealer’s seven cards are set below using the MGM-style house way.";
+        el.lookupResult.innerHTML = `<div class="lookup-verdict"><strong>${title}</strong><span>${subtitle}</span></div><div class="lookup-set-grid house-way-only"><section class="lookup-set-card"><h3>Dealer · House Way</h3>${resultSetMarkup(dealerSet)}<p>${dealerSet.houseRule}</p></section></div>`;
+        el.lookupResult.classList.remove("hidden");
+        setLookupMessage("Dealer house way found.");
+        return;
+      }
+
+      if (playerCards.length !== 7) {
+        setLookupMessage("Complete the player’s seven-card hand to find the best set.", true);
+        return;
+      }
+
+      if (dealerAceHigh) {
         el.lookupResult.innerHTML = `<div class="lookup-verdict"><strong>Automatic Push</strong><span>The dealer has Ace-high Pai Gow, so every player hand pushes. No player setting is needed.</span></div><div class="lookup-set-grid automatic-push-lookup"><section class="lookup-set-card"><h3>Dealer · House Way</h3>${resultSetMarkup(dealerSet)}<p>${dealerSet.houseRule}</p></section><section class="lookup-set-card no-setting-card"><h3>Player</h3><div class="no-setting-symbol">—</div><p>Do not set the hand. Deal the next round.</p></section></div>`;
         el.lookupResult.classList.remove("hidden");
         setLookupMessage("Automatic push — no player setting is needed.");
         return;
       }
-      const solution = E.findBestPlayerSet(state.lookup.player, dealerSet);
+      const solution = E.findBestPlayerSet(playerCards, dealerSet);
       const playerSet = solution.best;
       const result = playerSet.result;
       let title;
@@ -975,7 +1019,7 @@
 
   function startChallenge() {
     state.challenge = { active: true, number: 1, correct: 0, round: newRound(), misses: [] };
-    if (!state.challenge.round.automaticPush) state.challenge.round.message = "Select two cards for the player low hand.";
+    if (!state.challenge.round.automaticPush) state.challenge.round.message = SETTING_PROMPT;
     settleAutomaticPush("challenge", state.challenge.round);
     el.challengeLaunch.classList.add("hidden");
     el.modeTabs.classList.add("hidden");
@@ -990,7 +1034,7 @@
     if (!state.challenge.round || !state.challenge.round.completed) return;
     state.challenge.number += 1;
     state.challenge.round = newRound();
-    if (!state.challenge.round.automaticPush) state.challenge.round.message = "Select two cards for the player low hand.";
+    if (!state.challenge.round.automaticPush) state.challenge.round.message = SETTING_PROMPT;
     settleAutomaticPush("challenge", state.challenge.round);
     renderRound("challenge");
   }
@@ -1018,7 +1062,10 @@
         </div>`
       : `<div class="challenge-fail"><h2>Not Quite Grand Master</h2><div class="challenge-final-score">${challenge.correct} / ${CHALLENGE_HANDS} · ${percent(challenge.correct, CHALLENGE_HANDS)}</div><p>Grand Master certification requires a perfect 100 out of 100. You missed the best available result on ${challenge.misses.length} ${challenge.misses.length === 1 ? "hand" : "hands"}.</p><p>Visit Train mode, sharpen the eye, and make El Jefe proud.</p></div>`;
     const review = challenge.misses.length
-      ? `<details class="challenge-review"><summary>Review missed best results (${challenge.misses.length})</summary><div class="mistake-list">${challenge.misses.map(miss => `<article class="mistake-card"><h3>Hand ${miss.number}: played for a ${miss.outcome}; a ${miss.optimalOutcome} was available</h3><p>Your play</p>${renderMiniSet(miss.chosen)}<p>One best-result setting · ${outcomeLabel(miss.optimalOutcome)}</p>${renderMiniSet(miss.optimal)}</article>`).join("")}</div></details>`
+      ? `<details class="challenge-review"><summary>Review missed best results (${challenge.misses.length})</summary><div class="mistake-list">${challenge.misses.map(miss => {
+          const decision = miss.mucked ? "mucked the hand" : `played for a ${miss.outcome}`;
+          return `<article class="mistake-card"><h3>Hand ${miss.number}: ${decision}; a ${miss.optimalOutcome} was available</h3><p>Your play</p>${renderMiniSet(miss.chosen)}<p>One best-result setting · ${outcomeLabel(miss.optimalOutcome)}</p>${renderMiniSet(miss.optimal)}</article>`;
+        }).join("")}</div></details>`
       : "";
     el.challengeSummary.innerHTML = `${result}<div class="challenge-summary-actions"><button class="primary-button" id="challengeAgain" type="button">Try Again</button><button class="secondary-button" id="challengeDone" type="button">Done</button></div>${review}`;
     $("#challengeAgain").addEventListener("click", startChallenge);
@@ -1043,13 +1090,13 @@
   el.trainSet.addEventListener("click", () => submitSet("train"));
   el.resetPlay.addEventListener("click", resetPlay);
   el.resetTrain.addEventListener("click", resetTrain);
-  el.jokerPicker.addEventListener("click", addLookupJoker);
   el.importFromPlay.addEventListener("click", importPlayHand);
   el.removeLookup.addEventListener("click", removeLookupCard);
   el.clearLookup.addEventListener("click", clearLookup);
   el.findBestSet.addEventListener("click", findLookupSet);
   el.challengeLaunch.addEventListener("click", startChallenge);
   el.challengeSet.addEventListener("click", () => submitSet("challenge"));
+  el.challengeMuck.addEventListener("click", () => muckHand("challenge"));
   el.challengeNext.addEventListener("click", nextChallengeHand);
   el.challengeExit.addEventListener("click", exitChallenge);
   window.addEventListener("resize", () => requestAnimationFrame(drawBalanceChart));
@@ -1072,6 +1119,6 @@
       refreshing = true;
       window.location.reload();
     });
-    window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js?v=10", { updateViaCache: "none" }).then(registration => registration.update()).catch(() => {}));
+    window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js?v=13", { updateViaCache: "none" }).then(registration => registration.update()).catch(() => {}));
   }
 })();
