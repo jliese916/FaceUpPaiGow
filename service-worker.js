@@ -1,7 +1,7 @@
 "use strict";
 
-const CACHE_NAME = "casa-face-up-pai-gow-v13";
-const ASSETS = ["./index.html", "./styles.css?v=13", "./app.js?v=13", "./pai-gow-engine.js?v=13", "./manifest.webmanifest", "./jefe-crest.svg", "./favicon-64.png", "./apple-touch-icon.png", "./icon-192.png", "./icon-512.png"];
+const CACHE_NAME = "casa-face-up-pai-gow-v14";
+const ASSETS = ["./index.html", "./styles.css?v=14", "./app.js?v=14", "./pai-gow-engine.js?v=14", "./manifest.webmanifest", "./jefe-crest.svg", "./favicon-64.png", "./apple-touch-icon.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));

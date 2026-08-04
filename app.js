@@ -11,6 +11,9 @@
   const SUIT_CLASSES = ["suit-hearts", "suit-diamonds", "suit-clubs", "suit-spades"];
   const FAN_ANGLES = [-15, -10, -5, 0, 5, 10, 15];
   const SETTING_PROMPT = "Select two cards for the player low hand, or muck.";
+  let balanceChartFrame = 0;
+  let lastBalanceChartSignature = "";
+
 
   const el = {
     tabs: $$(".mode-tab"),
@@ -639,7 +642,7 @@
     el.trainScore.textContent = `${state.train.correct} / ${state.train.total}`;
     el.trainAccuracy.textContent = percent(state.train.correct, state.train.total);
     renderMistakes();
-    requestAnimationFrame(drawBalanceChart);
+    scheduleBalanceChartDraw();
   }
 
   function renderMiniSet(snapshot) {
@@ -662,6 +665,14 @@
     }).join("");
   }
 
+  function scheduleBalanceChartDraw() {
+    if (balanceChartFrame) return;
+    balanceChartFrame = requestAnimationFrame(() => {
+      balanceChartFrame = 0;
+      drawBalanceChart();
+    });
+  }
+
   function drawBalanceChart() {
     const canvas = el.playChart;
     if (!canvas || canvas.offsetParent === null) return;
@@ -669,13 +680,18 @@
     const dpr = window.devicePixelRatio || 1;
     const width = Math.max(280, rect.width);
     const height = Math.max(150, rect.height);
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
+    const pixelWidth = Math.round(width * dpr);
+    const pixelHeight = Math.round(height * dpr);
+    const actualValues = state.play.history.length ? state.play.history : [0];
+    const optimalValues = state.play.optimalHistory.length ? state.play.optimalHistory : [0];
+    const signature = `${pixelWidth}x${pixelHeight}:${state.play.hands}:${state.play.balance}:${state.play.optimalBalance}:${actualValues.length}:${optimalValues.length}`;
+    if (signature === lastBalanceChartSignature) return;
+    lastBalanceChartSignature = signature;
+    if (canvas.width !== pixelWidth) canvas.width = pixelWidth;
+    if (canvas.height !== pixelHeight) canvas.height = pixelHeight;
     const ctx = canvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
-    const actualValues = state.play.history.length ? state.play.history : [0];
-    const optimalValues = state.play.optimalHistory.length ? state.play.optimalHistory : [0];
     const allValues = [...actualValues, ...optimalValues];
     const pointCount = Math.max(actualValues.length, optimalValues.length);
     const min = Math.min(0, ...allValues);
@@ -1099,7 +1115,16 @@
   el.challengeMuck.addEventListener("click", () => muckHand("challenge"));
   el.challengeNext.addEventListener("click", nextChallengeHand);
   el.challengeExit.addEventListener("click", exitChallenge);
-  window.addEventListener("resize", () => requestAnimationFrame(drawBalanceChart));
+  if ("ResizeObserver" in window && el.playChart) {
+    const chartResizeObserver = new ResizeObserver(() => scheduleBalanceChartDraw());
+    chartResizeObserver.observe(el.playChart);
+  } else {
+    let chartResizeTimer = 0;
+    window.addEventListener("resize", () => {
+      window.clearTimeout(chartResizeTimer);
+      chartResizeTimer = window.setTimeout(scheduleBalanceChartDraw, 120);
+    }, { passive: true });
+  }
   window.addEventListener("keydown", event => {
     if (event.key === "Enter") {
       const mode = state.challenge.active ? "challenge" : state.mode;
@@ -1119,6 +1144,6 @@
       refreshing = true;
       window.location.reload();
     });
-    window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js?v=13", { updateViaCache: "none" }).then(registration => registration.update()).catch(() => {}));
+    window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js?v=14", { updateViaCache: "none" }).then(registration => registration.update()).catch(() => {}));
   }
 })();

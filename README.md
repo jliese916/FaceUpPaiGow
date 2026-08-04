@@ -86,3 +86,10 @@ node test-engine.js
 - Allows a complete dealer hand to be evaluated by itself with **Find House Way**.
 - Changes the action to **Find Best Set** as soon as player-card entry begins, enabling it once all seven player cards are present.
 - Keeps dealer Ace-high Pai Gow handling consistent in both dealer-only and full two-hand lookups.
+
+
+## v11 scroll-responsiveness update
+
+- Allows normal vertical scrolling when a touch begins on the bankroll chart.
+- Uses a ResizeObserver and a single queued animation frame rather than redrawing the chart on every mobile viewport resize event.
+- Skips canvas reallocations and redraws when the chart size and bankroll data have not changed.
