@@ -111,3 +111,11 @@ node test-engine.js
 - Keeps active hands uninterrupted; the new service worker activates only after the player chooses to reload.
 - Uses the standard waiting-worker flow instead of automatically replacing the active version.
 
+
+
+## v17 consistency pass
+
+- Standardized BANKROLL HISTORY and SESSION REVIEW to the shared Casa del Jefe trainer format.
+- Draws Your play above Optimal play, removes in-chart hand and delta labels, and expands the plotting area.
+- Centers accuracy percentages independently of optically centered plus/minus indicators.
+- Uses the FACE UP PAI GOW table name and corrected version-aware update prompt.

@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" href="./favicon-64.png">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=16">
+  <link rel="stylesheet" href="./styles.css?v=17">
 </head>
 <body>
   <main class="app">
@@ -47,7 +47,7 @@
 
     <section class="mode-panel" id="playPanel">
       <div class="pai-table" id="playTable">
-        <div class="table-wordmark"><span>CASA DEL JEFE</span><small>THE PAI GOW PRACTICE PIT</small></div>
+        <div class="table-wordmark"><span>CASA DEL JEFE</span><small>FACE UP PAI GOW</small></div>
         <div class="play-topline" aria-label="Play statistics">
           <div><small>Balance</small><strong id="playBalance">0 units</strong></div>
           <div><small>Accuracy</small><span class="accuracy-line"><strong id="playAccuracy">NA</strong><span class="decision-indicator" id="playIndicator" aria-hidden="true"></span></span></div>
@@ -58,13 +58,13 @@
         <div class="table-actions"><button class="secondary-button" id="playDeal" type="button">Deal</button><button class="muck-button hidden" id="playMuck" type="button">Muck Hand</button><button class="primary-button hidden" id="playSet" type="button" disabled>Set Top Hand</button></div>
       </div>
       <section class="balance-card">
-        <div class="balance-heading"><span>Bankroll history</span><small id="playChartSummary">0 completed hands</small></div>
+        <div class="balance-heading"><span>BANKROLL HISTORY</span></div>
         <div class="chart-legend" aria-hidden="true"><span><i class="legend-line legend-actual"></i>Your play</span><span><i class="legend-line legend-optimal"></i>Optimal play</span></div>
         <div class="chart-pill" id="playDeltaSummary">Optimal − you: 0</div>
         <canvas class="balance-chart" id="playBalanceChart" role="img" aria-label="Line chart comparing your bankroll with optimal play using the same hands"></canvas>
       </section>
       <section class="session-hub">
-        <div class="session-heading"><strong>Session review</strong><button class="danger-link" id="resetPlay" type="button">Reset session</button></div>
+        <div class="session-heading"><strong>SESSION REVIEW</strong><button class="danger-link" id="resetPlay" type="button">Reset session</button></div>
         <div class="session-stats">
           <div><small>Hands</small><strong id="completedHands">0</strong></div>
           <div><small>Wins</small><strong id="playWins">0</strong></div>
@@ -139,7 +139,7 @@
       </div>
     </footer>
   </main>
-  <script src="./pai-gow-engine.js?v=16"></script>
-  <script defer src="./app.js?v=16"></script>
+  <script src="./pai-gow-engine.js?v=17"></script>
+  <script defer src="./app.js?v=17"></script>
 </body>
 </html>

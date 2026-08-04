@@ -1,11 +1,12 @@
 "use strict";
 
-const CACHE_NAME = "casa-face-up-pai-gow-v16";
+const BUILD_VERSION = "17";
+const CACHE_NAME = "casa-face-up-pai-gow-v17";
 const ASSETS = [
   "./index.html",
-  "./styles.css?v=16",
-  "./app.js?v=16",
-  "./pai-gow-engine.js?v=16",
+  "./styles.css?v=17",
+  "./app.js?v=17",
+  "./pai-gow-engine.js?v=17",
   "./manifest.webmanifest",
   "./jefe-crest.svg",
   "./favicon-64.png",
@@ -15,10 +16,7 @@ const ASSETS = [
 ];
 
 self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
-  );
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
 });
 
 self.addEventListener("activate", event => {
@@ -30,7 +28,13 @@ self.addEventListener("activate", event => {
 });
 
 self.addEventListener("message", event => {
-  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+  const data = event.data || {};
+  if (data.type === "GET_VERSION") {
+    const port = event.ports && event.ports[0];
+    if (port) port.postMessage({ version: BUILD_VERSION });
+    return;
+  }
+  if (data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 function cacheResponse(request, response, cacheKey = request) {

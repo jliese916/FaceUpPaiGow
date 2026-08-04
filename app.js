@@ -6,6 +6,7 @@
 
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
+  const APP_VERSION = "17";
   const STORAGE_KEY = "casaFaceUpPaiGowPlayV1";
   const CHALLENGE_HANDS = 100;
   const SUIT_CLASSES = ["suit-hearts", "suit-diamonds", "suit-clubs", "suit-spades"];
@@ -39,7 +40,6 @@
     playAccuracy: $("#playAccuracy"),
     playIndicator: $("#playIndicator"),
     playChart: $("#playBalanceChart"),
-    playChartSummary: $("#playChartSummary"),
     playDeltaSummary: $("#playDeltaSummary"),
     completedHands: $("#completedHands"),
     playWins: $("#playWins"),
@@ -636,7 +636,6 @@
     el.playWins.textContent = String(p.wins);
     el.playPushes.textContent = String(p.pushes);
     el.playLosses.textContent = String(p.losses);
-    el.playChartSummary.textContent = `${p.hands} completed ${p.hands === 1 ? "hand" : "hands"}`;
     const delta = p.optimalBalance - p.balance;
     el.playDeltaSummary.textContent = `Optimal − you: ${deltaLabel(delta)}`;
     el.playDeltaSummary.classList.toggle("behind", delta > 0);
@@ -701,7 +700,7 @@
     const spread = Math.max(4, max - min);
     const low = min - spread * .18;
     const high = max + spread * .18;
-    const left = 40, right = 54, top = 12, bottom = 25;
+    const left = 40, right = 12, top = 12, bottom = 12;
     const xAt = index => left + (pointCount === 1 ? 0 : index / (pointCount - 1) * (width - left - right));
     const yAt = value => top + (high - value) / (high - low || 1) * (height - top - bottom);
     ctx.font = "11px system-ui, sans-serif";
@@ -725,6 +724,16 @@
       values.forEach((value, index) => index ? ctx.lineTo(xAt(index), yAt(value)) : ctx.moveTo(xAt(index), yAt(value)));
     };
 
+    // Draw optimal first so Your play remains visible whenever the lines overlap.
+    if (optimalValues.length > 1) {
+      buildPath(optimalValues);
+      ctx.strokeStyle = "#e7c86a";
+      ctx.lineWidth = 2.25;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.stroke();
+    }
+
     if (actualValues.length > 1) {
       const drawClippedLine = (clipTop, clipBottom, color) => {
         ctx.save();
@@ -743,54 +752,13 @@
       drawClippedLine(zeroY, height, "#ff6b6b");
     }
 
-    if (optimalValues.length > 1) {
-      buildPath(optimalValues);
-      ctx.strokeStyle = "#e7c86a";
-      ctx.lineWidth = 2.25;
-      ctx.lineJoin = "round";
-      ctx.lineCap = "round";
-      ctx.stroke();
-    }
-
     const actualLast = actualValues[actualValues.length - 1];
     const optimalLast = optimalValues[optimalValues.length - 1];
-    ctx.fillStyle = actualLast >= 0 ? "#4ccf79" : "#ff6b6b";
-    ctx.beginPath(); ctx.arc(xAt(actualValues.length - 1), yAt(actualLast), 4, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#e7c86a";
     ctx.beginPath(); ctx.arc(xAt(optimalValues.length - 1), yAt(optimalLast), 3.5, 0, Math.PI * 2); ctx.fill();
-
-    const delta = optimalLast - actualLast;
-    const actualY = yAt(actualLast);
-    const optimalY = yAt(optimalLast);
-    const topY = Math.min(actualY, optimalY);
-    const bottomY = Math.max(actualY, optimalY);
-    const bracketX = xAt(pointCount - 1) + 12;
-    const labelX = bracketX + 7;
-    const labelY = Math.min(height - 11, Math.max(11, (topY + bottomY) / 2));
-    const gapLabel = deltaLabel(delta);
-    ctx.save();
-    ctx.strokeStyle = "rgba(231,200,106,.78)";
-    ctx.fillStyle = "#f8f1df";
-    ctx.lineWidth = 1.4;
-    ctx.lineCap = "round";
-    if (Math.abs(actualY - optimalY) < 2.5) {
-      ctx.beginPath(); ctx.moveTo(bracketX - 4, actualY); ctx.lineTo(bracketX + 4, actualY); ctx.stroke();
-    } else {
-      ctx.beginPath();
-      ctx.moveTo(bracketX, topY); ctx.lineTo(bracketX, bottomY);
-      ctx.moveTo(bracketX - 4, topY); ctx.lineTo(bracketX + 4, topY);
-      ctx.moveTo(bracketX - 4, bottomY); ctx.lineTo(bracketX + 4, bottomY);
-      ctx.stroke();
-    }
-    ctx.font = "700 10px system-ui, sans-serif";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText(gapLabel, labelX, labelY);
-    ctx.restore();
-
-    ctx.fillStyle = "rgba(232,226,207,.72)";
-    ctx.fillText("Hands", width - 43, height - 6);
-    canvas.setAttribute("aria-label", `Line chart comparing your bankroll with optimal play. Current optimal-minus-you difference: ${gapLabel}.`);
+    ctx.fillStyle = actualLast >= 0 ? "#4ccf79" : "#ff6b6b";
+    ctx.beginPath(); ctx.arc(xAt(actualValues.length - 1), yAt(actualLast), 4, 0, Math.PI * 2); ctx.fill();
+    canvas.setAttribute("aria-label", `Line chart comparing your bankroll with optimal play. Current optimal-minus-you difference: ${deltaLabel(optimalLast - actualLast)}.`);
   }
 
   function setMode(mode) {
@@ -1139,38 +1107,93 @@
 
   renderRound("play");
   renderLookup();
-  if ("serviceWorker" in navigator) {
+  if ("serviceWorker" in navigator && location.protocol !== "file:") {
     let waitingWorker = null;
+    let waitingRegistration = null;
     let reloadingForUpdate = false;
 
-    const showUpdateNotice = worker => {
-      if (!worker || !navigator.serviceWorker.controller || !el.updateNotice) return;
+    const hideUpdateNotice = () => {
+      waitingWorker = null;
+      waitingRegistration = null;
+      if (el.updateNotice) el.updateNotice.classList.add("hidden");
+      if (el.reloadUpdate) {
+        el.reloadUpdate.disabled = false;
+        el.reloadUpdate.textContent = "Reload Now";
+      }
+    };
+
+    const workerVersion = worker => new Promise(resolve => {
+      if (!worker) {
+        resolve(null);
+        return;
+      }
+      const channel = new MessageChannel();
+      let settled = false;
+      const finish = value => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        resolve(value ? String(value) : null);
+      };
+      const timer = window.setTimeout(() => finish(null), 1200);
+      channel.port1.onmessage = event => finish(event.data && event.data.version);
+      try {
+        worker.postMessage({ type: "GET_VERSION" }, [channel.port2]);
+      } catch {
+        finish(null);
+      }
+    });
+
+    const numericVersion = value => {
+      const parsed = Number.parseInt(String(value || "").replace(/\D+/g, ""), 10);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const considerWaitingWorker = async (registration, worker) => {
+      if (!worker || worker.state !== "installed") return;
+      const version = await workerVersion(worker);
+      const pageVersion = numericVersion(APP_VERSION);
+      const candidateVersion = numericVersion(version);
+
+      if (candidateVersion === pageVersion) {
+        hideUpdateNotice();
+        worker.postMessage({ type: "SKIP_WAITING" });
+        return;
+      }
+
+      if (candidateVersion === null || (pageVersion !== null && candidateVersion < pageVersion)) {
+        hideUpdateNotice();
+        return;
+      }
+
+      if (!navigator.serviceWorker.controller || !el.updateNotice) return;
       waitingWorker = worker;
+      waitingRegistration = registration;
       el.updateNotice.classList.remove("hidden");
     };
 
     const watchedWorkers = new WeakSet();
-
     const watchWorker = (registration, worker) => {
       if (!worker || watchedWorkers.has(worker)) return;
       watchedWorkers.add(worker);
       const checkState = () => {
-        if (worker.state === "installed") showUpdateNotice(registration.waiting || worker);
+        if (worker.state === "installed") considerWaitingWorker(registration, registration.waiting || worker);
       };
       worker.addEventListener("statechange", checkState);
       checkState();
     };
 
     const watchRegistration = registration => {
-      if (registration.waiting) showUpdateNotice(registration.waiting);
+      if (registration.waiting) considerWaitingWorker(registration, registration.waiting);
       watchWorker(registration, registration.installing);
       registration.addEventListener("updatefound", () => watchWorker(registration, registration.installing));
     };
 
     const registerServiceWorker = async () => {
       try {
-        const registration = await navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" });
+        const registration = await navigator.serviceWorker.register(`./service-worker.js?v=${APP_VERSION}`, { updateViaCache: "none" });
         watchRegistration(registration);
+        registration.update().catch(() => {});
       } catch (error) {
         console.warn("Could not register the Face Up Pai Gow service worker.", error);
       }
@@ -1178,15 +1201,33 @@
 
     if (el.reloadUpdate) {
       el.reloadUpdate.addEventListener("click", () => {
-        if (!waitingWorker) return;
+        const worker = (waitingRegistration && waitingRegistration.waiting) || waitingWorker;
         el.reloadUpdate.disabled = true;
         el.reloadUpdate.textContent = "Reloading…";
-        navigator.serviceWorker.addEventListener("controllerchange", () => {
+
+        if (!worker) {
+          window.location.reload();
+          return;
+        }
+
+        const reloadOnce = () => {
           if (reloadingForUpdate) return;
           reloadingForUpdate = true;
           window.location.reload();
-        }, { once: true });
-        waitingWorker.postMessage({ type: "SKIP_WAITING" });
+        };
+
+        navigator.serviceWorker.addEventListener("controllerchange", reloadOnce, { once: true });
+        worker.addEventListener("statechange", () => {
+          if (worker.state === "activated") reloadOnce();
+        });
+
+        try {
+          worker.postMessage({ type: "SKIP_WAITING" });
+        } catch {
+          reloadOnce();
+          return;
+        }
+        window.setTimeout(reloadOnce, 2500);
       });
     }
 
