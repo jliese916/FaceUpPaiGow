@@ -93,3 +93,21 @@ node test-engine.js
 - Allows normal vertical scrolling when a touch begins on the bankroll chart.
 - Uses a ResizeObserver and a single queued animation frame rather than redrawing the chart on every mobile viewport resize event.
 - Skips canvas reallocations and redraws when the chart size and bankroll data have not changed.
+
+
+## v12 first-load responsiveness update
+
+- Removed forced page reloads during service-worker activation.
+- Removed the redundant explicit service-worker update request on every visit.
+- Delayed service-worker registration until the browser is idle.
+- Changed installed assets from network-first to cache-first delivery.
+- Simplified the optimal-minus-player chart labels to signed numbers without “units.”
+- Reduced the chart's right margin so more of the bankroll lines are visible.
+
+## v13 user-controlled update notice
+
+- Adds a hidden footer notice that appears only after a new trainer version has finished installing.
+- Displays “A new version of Face Up Pai Gow is ready.” with a **Reload Now** button beside the Casa del Jefe return link.
+- Keeps active hands uninterrupted; the new service worker activates only after the player chooses to reload.
+- Uses the standard waiting-worker flow instead of automatically replacing the active version.
+

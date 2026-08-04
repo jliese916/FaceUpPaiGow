@@ -11,7 +11,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" href="./favicon-64.png">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <link rel="stylesheet" href="./styles.css?v=14">
+  <link rel="stylesheet" href="./styles.css?v=16">
 </head>
 <body>
   <main class="app">
@@ -60,7 +60,7 @@
       <section class="balance-card">
         <div class="balance-heading"><span>Bankroll history</span><small id="playChartSummary">0 completed hands</small></div>
         <div class="chart-legend" aria-hidden="true"><span><i class="legend-line legend-actual"></i>Your play</span><span><i class="legend-line legend-optimal"></i>Optimal play</span></div>
-        <div class="chart-pill" id="playDeltaSummary">Optimal − you: 0 units</div>
+        <div class="chart-pill" id="playDeltaSummary">Optimal − you: 0</div>
         <canvas class="balance-chart" id="playBalanceChart" role="img" aria-label="Line chart comparing your bankroll with optimal play using the same hands"></canvas>
       </section>
       <section class="session-hub">
@@ -129,9 +129,17 @@
       <div class="challenge-summary hidden" id="challengeSummary"></div>
     </section>
 
-    <footer><a class="footer-link" href="https://jliese916.github.io/"><img src="./jefe-crest.svg" alt="">Return to Casa del Jefe</a></footer>
+    <footer>
+      <div class="footer-actions">
+        <a class="footer-link" href="https://jliese916.github.io/"><img src="./jefe-crest.svg" alt="">Return to Casa del Jefe</a>
+        <div class="update-notice hidden" id="updateNotice" role="status" aria-live="polite">
+          <span>A new version of Face Up Pai Gow is ready.</span>
+          <button class="update-button" id="reloadUpdate" type="button">Reload Now</button>
+        </div>
+      </div>
+    </footer>
   </main>
-  <script src="./pai-gow-engine.js?v=14"></script>
-  <script defer src="./app.js?v=14"></script>
+  <script src="./pai-gow-engine.js?v=16"></script>
+  <script defer src="./app.js?v=16"></script>
 </body>
 </html>

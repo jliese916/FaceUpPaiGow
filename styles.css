@@ -321,8 +321,12 @@ button.card { cursor: pointer; }
 .challenge-review summary { color: var(--gold-soft); font-weight: 850; cursor: pointer; }
 
 footer { margin-top: 18px; text-align: center; }
+.footer-actions { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; }
 .footer-link { display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px; color: var(--gold-soft); background: rgba(3,17,13,.66); text-decoration: none; font-size: .8rem; font-weight: 850; }
 .footer-link img { width: 22px; height: 22px; }
+.update-notice { display: inline-flex; align-items: center; gap: 9px; padding: 7px 8px 7px 12px; border: 1px solid rgba(216,181,100,.58); border-radius: 13px; background: rgba(8,29,22,.94); box-shadow: 0 7px 20px rgba(0,0,0,.2); color: var(--cream); font-size: .74rem; font-weight: 750; }
+.update-button { min-height: 34px; padding: 6px 11px; border: 1px solid var(--gold); border-radius: 9px; background: linear-gradient(145deg, var(--gold-soft), var(--gold)); color: #132019; font-weight: 900; cursor: pointer; }
+.update-button:disabled { opacity: .55; cursor: wait; }
 
 @media (max-width: 590px) {
   .app { padding-inline: 7px; }
@@ -356,6 +360,8 @@ footer { margin-top: 18px; text-align: center; }
   .lookup-set-grid, .strategy-grid { grid-template-columns: 1fr; }
   .strategy-grid article { min-height: 0; }
   .lookup-controls { flex-wrap: wrap; }
+  .footer-actions { align-items: stretch; }
+  .update-notice { width: min(100%, 330px); justify-content: space-between; text-align: left; }
 }
 
 @media (max-width: 390px) {

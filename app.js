@@ -66,7 +66,9 @@
     clearLookup: $("#clearLookup"),
     findBestSet: $("#findBestSet"),
     lookupMessage: $("#lookupMessage"),
-    lookupResult: $("#lookupResult")
+    lookupResult: $("#lookupResult"),
+    updateNotice: $("#updateNotice"),
+    reloadUpdate: $("#reloadUpdate")
   };
 
   const state = {
@@ -167,8 +169,8 @@
   }
 
   function deltaLabel(value) {
-    if (value === 0) return "0 units";
-    return `${value > 0 ? "+" : "−"}${Math.abs(value)} ${Math.abs(value) === 1 ? "unit" : "units"}`;
+    if (value === 0) return "0";
+    return `${value > 0 ? "+" : "−"}${Math.abs(value)}`;
   }
 
   function percent(correct, total) {
@@ -699,7 +701,7 @@
     const spread = Math.max(4, max - min);
     const low = min - spread * .18;
     const high = max + spread * .18;
-    const left = 40, right = 88, top = 12, bottom = 25;
+    const left = 40, right = 54, top = 12, bottom = 25;
     const xAt = index => left + (pointCount === 1 ? 0 : index / (pointCount - 1) * (width - left - right));
     const yAt = value => top + (high - value) / (high - low || 1) * (height - top - bottom);
     ctx.font = "11px system-ui, sans-serif";
@@ -1138,12 +1140,59 @@
   renderRound("play");
   renderLookup();
   if ("serviceWorker" in navigator) {
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (refreshing) return;
-      refreshing = true;
-      window.location.reload();
-    });
-    window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js?v=14", { updateViaCache: "none" }).then(registration => registration.update()).catch(() => {}));
+    let waitingWorker = null;
+    let reloadingForUpdate = false;
+
+    const showUpdateNotice = worker => {
+      if (!worker || !navigator.serviceWorker.controller || !el.updateNotice) return;
+      waitingWorker = worker;
+      el.updateNotice.classList.remove("hidden");
+    };
+
+    const watchedWorkers = new WeakSet();
+
+    const watchWorker = (registration, worker) => {
+      if (!worker || watchedWorkers.has(worker)) return;
+      watchedWorkers.add(worker);
+      const checkState = () => {
+        if (worker.state === "installed") showUpdateNotice(registration.waiting || worker);
+      };
+      worker.addEventListener("statechange", checkState);
+      checkState();
+    };
+
+    const watchRegistration = registration => {
+      if (registration.waiting) showUpdateNotice(registration.waiting);
+      watchWorker(registration, registration.installing);
+      registration.addEventListener("updatefound", () => watchWorker(registration, registration.installing));
+    };
+
+    const registerServiceWorker = async () => {
+      try {
+        const registration = await navigator.serviceWorker.register("./service-worker.js", { updateViaCache: "none" });
+        watchRegistration(registration);
+      } catch (error) {
+        console.warn("Could not register the Face Up Pai Gow service worker.", error);
+      }
+    };
+
+    if (el.reloadUpdate) {
+      el.reloadUpdate.addEventListener("click", () => {
+        if (!waitingWorker) return;
+        el.reloadUpdate.disabled = true;
+        el.reloadUpdate.textContent = "Reloading…";
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (reloadingForUpdate) return;
+          reloadingForUpdate = true;
+          window.location.reload();
+        }, { once: true });
+        waitingWorker.postMessage({ type: "SKIP_WAITING" });
+      });
+    }
+
+    window.addEventListener("load", () => {
+      if ("requestIdleCallback" in window) window.requestIdleCallback(registerServiceWorker, { timeout: 2500 });
+      else window.setTimeout(registerServiceWorker, 750);
+    }, { once: true });
   }
 })();
