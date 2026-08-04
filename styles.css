@@ -143,7 +143,7 @@ button.card { cursor: pointer; }
 .card.placeholder { border-style: dashed; border-color: rgba(241,217,146,.45); background: rgba(3,17,13,.76); box-shadow: inset 0 0 0 1px rgba(201,162,58,.08); color: rgba(241,217,146,.7); }
 
 .player-fan { position: relative; display: flex; align-items: flex-end; justify-content: center; min-height: 145px; padding: 28px 22px 7px; }
-.fan-card { --angle: 0deg; --lift: 0px; position: relative; width: 72px; height: 104px; margin-left: -24px; transform: translateY(var(--lift)) rotate(var(--angle)); transform-origin: 50% 130%; transition: transform .15s ease, filter .15s ease, border-color .15s ease; z-index: var(--i); }
+.fan-card { --angle: 0deg; --lift: 0px; position: relative; width: 72px; height: 104px; margin-left: -20px; transform: translateY(var(--lift)) rotate(var(--angle)); transform-origin: 50% 145%; transition: transform .15s ease, filter .15s ease, border-color .15s ease; z-index: var(--i); }
 .fan-card:first-child { margin-left: 0; }
 .fan-card:hover { filter: brightness(1.03); }
 .fan-card .card-rank { font-size: 3rem; }
@@ -356,7 +356,7 @@ footer { margin-top: 18px; text-align: center; }
   .dealer-high .card, .dealer-low .card, .player-set-layout .card { width: 48px; height: 70px; border-radius: 8px; }
   .dealer-high .card-rank, .dealer-low .card-rank, .player-set-layout .card-rank { font-size: 1.95rem; }
   .dealer-high .card-suit, .dealer-low .card-suit, .player-set-layout .card-suit { font-size: .78rem; }
-  .fan-card { width: 61px; height: 90px; margin-left: -25px; }
+  .fan-card { width: 61px; height: 90px; margin-left: -22px; }
   .fan-card .card-rank { font-size: 2.65rem; }
   .fan-card .card-suit { font-size: 1.08rem; }
   .player-fan { min-height: 127px; padding-inline: 7px; }
@@ -376,7 +376,7 @@ footer { margin-top: 18px; text-align: center; }
   .play-topline { gap: 3px; padding-inline: 5px; }
   .play-topline small { font-size: .55rem; }
   .play-topline strong { font-size: .78rem; }
-  .fan-card { width: 56px; height: 83px; margin-left: -24px; }
+  .fan-card { width: 56px; height: 83px; margin-left: -21px; }
   .fan-card .card-rank { font-size: 2.35rem; }
   .rank-picker { grid-template-columns: repeat(5, 1fr); }
   .lookup-slot { width: 44px; height: 65px; }

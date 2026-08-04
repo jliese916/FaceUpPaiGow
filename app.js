@@ -6,11 +6,11 @@
 
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
-  const APP_VERSION = "17";
+  const APP_VERSION = "18";
   const STORAGE_KEY = "casaFaceUpPaiGowPlayV1";
   const CHALLENGE_HANDS = 100;
   const SUIT_CLASSES = ["suit-hearts", "suit-diamonds", "suit-clubs", "suit-spades"];
-  const FAN_ANGLES = [-15, -10, -5, 0, 5, 10, 15];
+  const FAN_ANGLES = [-30, -20, -10, 0, 10, 20, 30];
   const SETTING_PROMPT = "Select two cards for the player low hand, or muck.";
   let balanceChartFrame = 0;
   let lastBalanceChartSignature = "";
