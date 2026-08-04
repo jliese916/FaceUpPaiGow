@@ -110,7 +110,7 @@ button.card { cursor: pointer; }
 .suit-diamonds { color: var(--diamond); }
 .suit-clubs { color: var(--club); }
 .suit-spades { color: var(--spade); }
-.card.joker-card { border-color: #b8ab8b; background: radial-gradient(circle at 50% 44%, #fff 0 34%, #f8f1df 72%, #e9dcc0 100%); color: #050505; box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px #c9a23a, 0 5px 11px rgba(0,0,0,.24); }
+.card.joker-card { border-color: #c6baa0; background: radial-gradient(circle at 50% 44%, #fffdf8 0 34%, #f8f2e5 72%, #eadfc8 100%); color: #050505; box-shadow: inset 0 0 0 2px #fffdf8, inset 0 0 0 4px #c9a23a, 0 5px 11px rgba(0,0,0,.24); }
 .joker-card .joker-star { position: relative; z-index: 2; margin-top: 14px; color: #050505; font-size: 2.55rem; line-height: 1; text-shadow: 0 1px 0 #fff, 0 3px 7px rgba(0,0,0,.18); }
 .joker-card .joker-word { position: absolute; left: 50%; top: 20%; z-index: 3; color: #7f1d1d; font-family: Georgia, "Times New Roman", serif; font-size: .58rem; font-weight: 950; letter-spacing: .1em; line-height: 1; transform: translateX(-50%); }
 .joker-stripes { position: absolute; top: 56%; z-index: 1; display: grid; gap: 5px; width: 31px; transform: translateY(-50%) rotate(-24deg); }
@@ -143,11 +143,15 @@ button.card { cursor: pointer; }
 .card.placeholder { border-style: dashed; border-color: rgba(241,217,146,.45); background: rgba(3,17,13,.76); box-shadow: inset 0 0 0 1px rgba(201,162,58,.08); color: rgba(241,217,146,.7); }
 
 .player-fan { position: relative; display: flex; align-items: flex-end; justify-content: center; min-height: 145px; padding: 28px 22px 7px; }
-.fan-card { --angle: 0deg; --lift: 0px; position: relative; width: 72px; height: 104px; margin-left: -20px; transform: translateY(var(--lift)) rotate(var(--angle)); transform-origin: 50% 145%; transition: transform .15s ease, filter .15s ease, border-color .15s ease; z-index: var(--i); }
+.fan-card { --angle: 0deg; --lift: 0px; position: relative; width: 67px; height: 97px; margin-left: -19px; transform: translateY(var(--lift)) rotate(var(--angle)); transform-origin: 50% 142%; transition: transform .15s ease, filter .15s ease, border-color .15s ease; z-index: var(--i); }
 .fan-card:first-child { margin-left: 0; }
 .fan-card:hover { filter: brightness(1.03); }
-.fan-card .card-rank { font-size: 2.35rem; }
-.fan-card .card-suit { font-size: .98rem; }
+.fan-card .card-rank { font-size: 2.72rem; }
+.fan-card .card-suit { font-size: 1.14rem; }
+.fan-card.joker-card .joker-star { margin-top: 16px; font-size: 2.94rem; }
+.fan-card.joker-card .joker-word, .fan-card.joker-card .joker-corner { font-size: .67rem; }
+.fan-card.joker-card .joker-stripes { gap: 6px; width: 36px; }
+.fan-card.joker-card .joker-stripes i { height: 6px; }
 .lookup-slot .card-rank { font-size: 2.05rem; }
 .lookup-slot .card-suit { font-size: .78rem; }
 .fan-card.selected { --lift: -18px; border-color: #ffe184; box-shadow: 0 0 0 3px rgba(255,225,132,.2), 0 13px 18px rgba(0,0,0,.34); z-index: 20; }
@@ -356,17 +360,21 @@ footer { margin-top: 18px; text-align: center; }
   .dealer-high .card, .dealer-low .card, .player-set-layout .card { width: 48px; height: 70px; border-radius: 8px; }
   .dealer-high .card-rank, .dealer-low .card-rank, .player-set-layout .card-rank { font-size: 1.95rem; }
   .dealer-high .card-suit, .dealer-low .card-suit, .player-set-layout .card-suit { font-size: .78rem; }
-  .fan-card { width: 61px; height: 90px; margin-left: -23px; transform-origin: 50% 138%; }
-  .fan-card:nth-child(1) { --angle: -24deg !important; }
-  .fan-card:nth-child(2) { --angle: -16deg !important; }
-  .fan-card:nth-child(3) { --angle: -8deg !important; }
+  .fan-card { width: 59px; height: 86px; margin-left: -24px; transform-origin: 50% 136%; }
+  .fan-card:nth-child(1) { --angle: -22deg !important; }
+  .fan-card:nth-child(2) { --angle: -15deg !important; }
+  .fan-card:nth-child(3) { --angle: -7deg !important; }
   .fan-card:nth-child(4) { --angle: 0deg !important; }
-  .fan-card:nth-child(5) { --angle: 8deg !important; }
-  .fan-card:nth-child(6) { --angle: 16deg !important; }
-  .fan-card:nth-child(7) { --angle: 24deg !important; }
-  .fan-card .card-rank { font-size: 1.95rem; }
-  .fan-card .card-suit { font-size: .78rem; }
-  .player-fan { min-height: 127px; padding-inline: 7px; }
+  .fan-card:nth-child(5) { --angle: 7deg !important; }
+  .fan-card:nth-child(6) { --angle: 15deg !important; }
+  .fan-card:nth-child(7) { --angle: 22deg !important; }
+  .fan-card .card-rank { font-size: 2.03rem; }
+  .fan-card .card-suit { font-size: .82rem; }
+  .fan-card.joker-card .joker-star { margin-top: 14px; font-size: 2.65rem; }
+  .fan-card.joker-card .joker-word, .fan-card.joker-card .joker-corner { font-size: .61rem; }
+  .fan-card.joker-card .joker-stripes { gap: 5px; width: 33px; }
+  .fan-card.joker-card .joker-stripes i { height: 5px; }
+  .player-fan { min-height: 123px; padding-inline: 5px; }
   .table-message { font-size: .86rem; }
   .primary-button, .secondary-button, .muck-button { min-width: 128px; padding-inline: 9px; }
   .session-heading { display: grid; }
@@ -383,16 +391,20 @@ footer { margin-top: 18px; text-align: center; }
   .play-topline { gap: 3px; padding-inline: 5px; }
   .play-topline small { font-size: .55rem; }
   .play-topline strong { font-size: .78rem; }
-  .fan-card { width: 56px; height: 83px; margin-left: -22px; transform-origin: 50% 135%; }
-  .fan-card:nth-child(1) { --angle: -21deg !important; }
-  .fan-card:nth-child(2) { --angle: -14deg !important; }
-  .fan-card:nth-child(3) { --angle: -7deg !important; }
+  .fan-card { width: 57px; height: 83px; margin-left: -24px; transform-origin: 50% 134%; }
+  .fan-card:nth-child(1) { --angle: -19deg !important; }
+  .fan-card:nth-child(2) { --angle: -13deg !important; }
+  .fan-card:nth-child(3) { --angle: -6deg !important; }
   .fan-card:nth-child(4) { --angle: 0deg !important; }
-  .fan-card:nth-child(5) { --angle: 7deg !important; }
-  .fan-card:nth-child(6) { --angle: 14deg !important; }
-  .fan-card:nth-child(7) { --angle: 21deg !important; }
-  .fan-card .card-rank { font-size: 1.95rem; }
-  .fan-card .card-suit { font-size: .78rem; }
+  .fan-card:nth-child(5) { --angle: 6deg !important; }
+  .fan-card:nth-child(6) { --angle: 13deg !important; }
+  .fan-card:nth-child(7) { --angle: 19deg !important; }
+  .fan-card .card-rank { font-size: 1.97rem; }
+  .fan-card .card-suit { font-size: .79rem; }
+  .fan-card.joker-card .joker-star { margin-top: 14px; font-size: 2.55rem; }
+  .fan-card.joker-card .joker-word, .fan-card.joker-card .joker-corner { font-size: .58rem; }
+  .fan-card.joker-card .joker-stripes { gap: 5px; width: 31px; }
+  .fan-card.joker-card .joker-stripes i { height: 5px; }
   .rank-picker { grid-template-columns: repeat(5, 1fr); }
   .lookup-slot { width: 44px; height: 65px; }
   .table-actions { gap: 6px; }

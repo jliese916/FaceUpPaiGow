@@ -1,12 +1,12 @@
 "use strict";
 
-const BUILD_VERSION = "19";
-const CACHE_NAME = "casa-face-up-pai-gow-v19";
+const BUILD_VERSION = "20";
+const CACHE_NAME = "casa-face-up-pai-gow-v20";
 const ASSETS = [
   "./index.html",
-  "./styles.css?v=19",
-  "./app.js?v=19",
-  "./pai-gow-engine.js?v=19",
+  "./styles.css?v=20",
+  "./app.js?v=20",
+  "./pai-gow-engine.js?v=20",
   "./manifest.webmanifest",
   "./jefe-crest.svg",
   "./favicon-64.png",
